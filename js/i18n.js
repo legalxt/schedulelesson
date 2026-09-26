@@ -204,7 +204,7 @@ window.SL_I18N = {
     'form.ok.d': 'Напишемо один раз — коли застосунок зʼявиться в App Store.',
     'form.dup.t': 'Ви вже в списку',
     'form.dup.d': 'Ця адреса вже чекає на запуск — ми не забудемо.',
-    'form.privacy': 'Email потрібен лише для одного листа про запуск. Надсилаючи форму, ви погоджуєтеся з <a href="privacy.html#website-uk">Політикою конфіденційності</a>.',
+    'form.privacy': 'Email потрібен лише для одного листа про запуск. Надсилаючи форму, ви погоджуєтеся на обробку адреси для цього листа — див. <a href="privacy.html#website-uk">Політику конфіденційності</a>.',
     'form.hp': 'Не заповнюйте це поле',
     'form.nojs': 'Щоб записатися, увімкніть JavaScript — або напишіть нам на <a href="mailto:supportschedulelesson@gmail.com?subject=Schedule%20Lesson%20launch">supportschedulelesson@gmail.com</a>.',
 
@@ -419,7 +419,7 @@ window.SL_I18N = {
     'form.ok.d': 'Напишем один раз — когда приложение появится в App Store.',
     'form.dup.t': 'Вы уже в списке',
     'form.dup.d': 'Этот адрес уже ждёт запуска — мы не забудем.',
-    'form.privacy': 'Email нужен только для одного письма о запуске. Отправляя форму, вы соглашаетесь с <a href="privacy.html#website-ru">Политикой конфиденциальности</a>.',
+    'form.privacy': 'Email нужен только для одного письма о запуске. Отправляя форму, вы соглашаетесь на обработку адреса для этого письма — см. <a href="privacy.html#website-ru">Политику конфиденциальности</a>.',
     'form.hp': 'Не заполняйте это поле',
     'form.nojs': 'Чтобы записаться, включите JavaScript — или напишите нам на <a href="mailto:supportschedulelesson@gmail.com?subject=Schedule%20Lesson%20launch">supportschedulelesson@gmail.com</a>.',
 
@@ -634,7 +634,7 @@ window.SL_I18N = {
     'form.ok.d': 'We’ll email you once — when the app is on the App Store.',
     'form.dup.t': 'You’re already on the list',
     'form.dup.d': 'This address is already waiting for launch — we won’t forget.',
-    'form.privacy': 'We use your email for one launch email only. By submitting, you agree to our <a href="privacy.html#website-en">Privacy\u00a0Policy</a>.',
+    'form.privacy': 'We use your email for one launch email only. By submitting, you agree to us using it for that email — see our <a href="privacy.html#website-en">Privacy\u00a0Policy</a>.',
     'form.hp': 'Leave this field empty',
     'form.nojs': 'To join, please enable JavaScript — or email us at <a href="mailto:supportschedulelesson@gmail.com?subject=Schedule%20Lesson%20launch">supportschedulelesson@gmail.com</a>.',
 

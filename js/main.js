@@ -1,7 +1,7 @@
 /* Schedule Lesson — site script.
    Works in three modes:
    - cine: GSAP + ScrollTrigger (+ Lenis) loaded and motion allowed → pinned scroll cinema;
-   - static with JS: libraries blocked or prefers-reduced-motion → final-state layout, i18n, form, carousel;
+   - static with JS: libraries blocked or prefers-reduced-motion → final-state layout, i18n, App Store state, carousel;
    - no JS at all: final-state layout in Ukrainian (see index.html / css). */
 (() => {
   'use strict';
@@ -100,7 +100,7 @@
       el.dataset.i18nAttr.split(',').forEach(pair => {
         const [a, k] = pair.split(':').map(s => s.trim());
         const v = t(k);
-        el.setAttribute(a, a === 'href' || a === 'content' ? v : typo(v));
+        el.setAttribute(a, a === 'href' || a === 'content' || a === 'src' ? v : typo(v));
       });
     });
     $$('img[data-shot]').forEach(img => {
@@ -119,7 +119,6 @@
     $$('.avs .av:not(.av-more)').forEach((el, i) => { el.textContent = avs[i] || ''; });
     $$('.lang-btn').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
     if (menu && !menu.hidden) burger.setAttribute('aria-label', t('nav.menu.close'));
-    renderForms();
     if (save) {
       try { localStorage.setItem('sl_lang', lang); } catch (e) { /* ignore */ }
       try { // each language has its own static page: / (uk), ru.html, en.html
@@ -204,43 +203,13 @@
     }
   }
 
-  // hero form becomes visible part-way through the pinned hero; set by the cinema
-  let heroForm = null; // { st, frac } from the hero timeline
-  const heroFormYNow = () => (heroForm ? heroForm.st.start + (heroForm.st.end - heroForm.st.start) * heroForm.frac : null);
-  const wlWraps = $$('[data-wl-wrap]');
-  function formY(wrap) {
-    const hy = heroFormYNow();
-    if (hy != null && wrap.closest('.hero')) return hy;
-    return absTop(wrap) - innerHeight * 0.42;
-  }
-  function focusSoon(el, tries = 12) { // the scrubbed hero may still be catching up with the scroll
-    el.focus({ preventScroll: true });
-    if (document.activeElement !== el && tries > 0) setTimeout(() => focusSoon(el, tries - 1), 80);
-  }
-  function goToForm() {
-    const cur = window.scrollY || 0;
-    let best = null;
-    wlWraps.forEach(w => {
-      const y = clamp(formY(w), 0, maxScroll());
-      if (!best || Math.abs(y - cur) < Math.abs(best.y - cur)) best = { w, y };
-    });
-    if (!best) return;
-    scrollToY(best.y, () => {
-      const f = best.w.querySelector('form');
-      const target = f && !f.hidden ? f.querySelector('input[type="email"]') : best.w.querySelector('.wl-ok');
-      if (target) focusSoon(target);
-    });
-  }
+  // the hero copy (App Store block, links) becomes visible part-way through the pinned hero; set by the cinema
+  let heroSide = null; // { st, frac } from the hero timeline
+  const heroSideYNow = () => (heroSide ? heroSide.st.start + (heroSide.st.end - heroSide.st.start) * heroSide.frac : null);
 
   document.addEventListener('click', e => {
     const a = e.target.closest('a[href^="#"]');
     if (!a) return;
-    if (a.hasAttribute('data-cta')) {
-      e.preventDefault();
-      if (!menu.hidden) setMenu(false, { focus: false });
-      goToForm();
-      return;
-    }
     const id = a.getAttribute('href').slice(1);
     const el = id ? document.getElementById(id) : null;
     if (!el) return;
@@ -253,99 +222,49 @@
     });
   });
 
-  /* ============================== waitlist ============================== */
-  const SUPA_URL = 'https://emokbyrswsvkkapiytmv.supabase.co/rest/v1/waitlist';
-  const SUPA_KEY = 'sb_publishable_184qEnktJDgn3LYQLrrkyQ_mghWzDpd';
-  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-  let doneKind = null; // 'ok' | 'dup' once any form succeeded
-  const forms = wlWraps.map(wrap => {
-    const form = $('form', wrap);
-    return {
-      wrap, form,
-      input: $('input[type="email"]', form),
-      hp: $('.hp input', form),
-      side: wrap.closest('.b-side'),
-      btn: $('button[type="submit"]', form),
-      msg: $('.wl-msg', form),
-      ok: $('.wl-ok', wrap),
-      status: 'idle', msgKey: '',
-    };
-  });
-  function renderForm(f) {
-    const sending = f.status === 'sending';
-    $('.lbl-full', f.btn).textContent = t(sending ? 'form.sending' : 'form.submit');
-    $('.lbl-short', f.btn).textContent = t(sending ? 'form.sending' : 'form.submit.short');
-    f.msg.textContent = f.msgKey ? t(f.msgKey) : '';
-    f.msg.classList.toggle('err', f.status === 'error');
-    f.form.classList.toggle('sending', sending);
-    f.form.classList.toggle('err', f.status === 'error' && f.msgKey === 'form.invalid');
-    f.btn.disabled = sending;
-    f.btn.setAttribute('aria-busy', String(sending));
-    if (f.side) f.side.classList.toggle('has-msg', !!f.msgKey && !doneKind);
-    html.classList.toggle('wl-done', !!doneKind);
-    if (doneKind) {
-      f.form.hidden = true;
-      f.ok.hidden = false;
-      $('.ok-t', f.ok).textContent = typo(t(doneKind === 'dup' ? 'form.dup.t' : 'form.ok.t'));
-      $('.ok-d', f.ok).textContent = typo(t(doneKind === 'dup' ? 'form.dup.d' : 'form.ok.d'));
-    }
+  /* ============================== App Store state ============================== */
+  // NOT LIVE is the static default (markup, no-JS, errors): a calm «Скоро в App Store» pill, no download link anywhere;
+  // [data-cta] (nav / menu) scroll to the final section (#join).
+  // LIVE = html.sl-live: the official badge + pricing buttons link to the store, nav CTA opens it, QR on desktop,
+  // «Вже в App Store». What is shown for each state is pure CSS (.st-soon / .st-live).
+  // Detection: the public iTunes lookup API (CORS *) — resultCount > 0 means the app is on the store. 4 s timeout;
+  // the answer is cached in sessionStorage ('sl_store' = "1 <url>" | "0") for the session and read by the <head>
+  // script before first paint. Any failure → stay NOT LIVE silently and retry on the next page load.
+  // QA override (never cached): ?live=1 forces LIVE, ?live=0 forces NOT LIVE.
+  // RELEASE DAY: re-run the prerender with STORE_LIVE=1 → <html class="sl-live" data-store="released">: LIVE becomes the
+  // static default (no-JS, crawlers) and the lookup is skipped, so a blocked/slow itunes.apple.com can no longer hide the store.
+  const APP_ID = '6817674096';
+  const STORE_URL = `https://apps.apple.com/app/id${APP_ID}`;
+  const LOOKUP_URL = `https://itunes.apple.com/lookup?id=${APP_ID}&country=us`;
+  const STORE_KEY = 'sl_store';
+  function setLive(live, url) {
+    const was = html.classList.contains('sl-live');
+    html.classList.toggle('sl-live', live);
+    const href = live && /^https:\/\/apps\.apple\.com\//.test(url || '') ? url : STORE_URL;
+    $$('[data-store-href]').forEach(a => { a.href = href; });
+    $$('[data-cta]').forEach(a => { a.setAttribute('href', live ? href : '#join'); });
+    if (was !== live && built && window.ScrollTrigger) ScrollTrigger.refresh();
   }
-  function renderForms() { forms.forEach(renderForm); }
-  function setState(f, status, msgKey = '') {
-    f.status = status; f.msgKey = msgKey;
-    if (status === 'error' && msgKey === 'form.invalid') {
-      f.input.setAttribute('aria-invalid', 'true');
-      f.input.setAttribute('aria-describedby', f.msg.id || (f.msg.id = 'wlmsg-' + Math.random().toString(36).slice(2, 8)));
-    } else f.input.removeAttribute('aria-invalid');
-    renderForm(f);
+  async function detectStore() {
+    let q = null, cached = null;
+    try { q = new URLSearchParams(location.search).get('live'); } catch (e) { /* ignore */ }
+    if (q === '1' || q === '0') { setLive(q === '1'); return; }
+    if (html.getAttribute('data-store') === 'released') { setLive(true); return; }
+    try { cached = sessionStorage.getItem(STORE_KEY); } catch (e) { /* storage blocked */ }
+    if (cached) { setLive(cached.charAt(0) === '1', cached.slice(2)); return; }
+    if (!window.fetch) return;
+    const ctrl = 'AbortController' in window ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), 4000) : 0;
+    try {
+      const res = await fetch(LOOKUP_URL, { credentials: 'omit', signal: ctrl ? ctrl.signal : undefined });
+      if (!res.ok) return;
+      const j = await res.json();
+      const live = !!(j && j.resultCount > 0);
+      const url = (live && j.results && j.results[0] && j.results[0].trackViewUrl) || '';
+      try { sessionStorage.setItem(STORE_KEY, live ? '1 ' + url : '0'); } catch (e) { /* ignore */ }
+      setLive(live, url);
+    } catch (e) { /* offline, blocked or timed out → stay NOT LIVE */ } finally { clearTimeout(timer); }
   }
-  function finish(f, kind) {
-    doneKind = kind;
-    forms.forEach(g => { g.ok.classList.add('anim'); renderForm(g); });
-    if (built && window.ScrollTrigger) ScrollTrigger.refresh();
-    f.ok.focus({ preventScroll: true });
-  }
-  const validEmail = (f, v) => EMAIL_RE.test(v) && v.length <= 254 && !/\.\.|\.$/.test(v) && f.input.checkValidity();
-  forms.forEach(f => {
-    f.btn.disabled = false; // shipped disabled so a no-JS submit can never put the email in a URL
-    f.input.addEventListener('input', () => {
-      if (f.status !== 'error') return;
-      if (f.msgKey === 'form.invalid' && !validEmail(f, f.input.value.trim())) return;
-      setState(f, 'idle');
-    });
-    f.form.addEventListener('submit', async e => {
-      e.preventDefault();
-      if (f.status === 'sending' || doneKind) return;
-      const email = f.input.value.trim().toLowerCase();
-      if (f.hp.value) { finish(f, 'ok'); return; } // bot: pretend success, send nothing
-      if (!validEmail(f, email)) { setState(f, 'error', 'form.invalid'); f.input.focus(); return; }
-      setState(f, 'sending');
-      let ctrl = null, timer = null;
-      try {
-        ctrl = 'AbortController' in window ? new AbortController() : null;
-        if (ctrl) timer = setTimeout(() => ctrl.abort(), 15000);
-        const res = await fetch(SUPA_URL, {
-          method: 'POST',
-          headers: {
-            apikey: SUPA_KEY,
-            Authorization: `Bearer ${SUPA_KEY}`,
-            'Content-Type': 'application/json',
-            Prefer: 'return=minimal',
-          },
-          body: JSON.stringify({ email, locale: lang, source: 'site' }),
-          signal: ctrl ? ctrl.signal : undefined,
-        });
-        clearTimeout(timer);
-        if (res.ok) { f.status = 'idle'; finish(f, 'ok'); }
-        else if (res.status === 409) { f.status = 'idle'; finish(f, 'dup'); }
-        else { setState(f, 'error', 'form.error'); f.input.focus({ preventScroll: true }); }
-      } catch (err) {
-        clearTimeout(timer);
-        setState(f, 'error', 'form.error');
-        f.input.focus({ preventScroll: true });
-      }
-    });
-  });
 
   /* ============================== carousel ============================== */
   const car = $('#car');
@@ -523,11 +442,11 @@
     tl.fromTo('.hero .isl-cmp', { opacity: 0 }, { opacity: 1, duration: 0.4 }, 2.35);
     tl.fromTo('.b-title .ln > span', { yPercent: 110, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.7, stagger: 0.12, ease: 'power3.out' }, 2.45);
     tl.fromTo('.b-side > *', { opacity: 0, y: mob ? 10 : 24 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.08, ease: 'power2.out' }, 2.8);
-    tl.set('.b-side', { pointerEvents: 'auto' }, 2.9); // invisible form must not take taps (reverts when scrubbing back)
+    tl.set('.b-side', { pointerEvents: 'auto' }, 2.9); // invisible copy must not take taps (reverts when scrubbing back)
     tl.to('.hero .aurora', { opacity: 0.7, duration: 1.4 }, 4.4);
     const st = tl.scrollTrigger;
-    const T_FORM = 3.75;
-    heroForm = { st, frac: T_FORM / tl.duration() };
+    const T_SIDE = 3.75;
+    heroSide = { st, frac: T_SIDE / tl.duration() };
   }
 
   function layersTimeline(mob, vw, vh, yEnd) {
@@ -810,7 +729,7 @@
     carUpd();
   }
   function teardown() {
-    heroForm = null;
+    heroSide = null;
     if (ctx) ctx.revert();
     ctx = null;
     $$('.lab').forEach(l => { l.style.transform = ''; });
@@ -857,9 +776,9 @@
         if (layoutSig() !== sig0) rebuild(); else ScrollTrigger.refresh();
       });
     }
-    // keyboard users tabbing into the (still hidden) hero form get scrolled to it
+    // keyboard users tabbing into the (still hidden) hero copy get scrolled to it
     $('.hero .b-side').addEventListener('focusin', () => {
-      const hy = heroFormYNow();
+      const hy = heroSideYNow();
       if (hy != null && (window.scrollY || 0) < hy - 4) scrollToY(hy);
     });
     let lastW = innerWidth, lastH = innerHeight, rT = 0;
@@ -879,9 +798,10 @@
   }
 
   /* ============================== boot ============================== */
-  // language, forms, menu, carousel work right away; the cinema starts once the (deferred)
+  // language, App Store state, menu, carousel work right away; the cinema starts once the (deferred)
   // animation libraries have run — unless the <head> timer already gave up on them (slow network).
   applyLang(lang);
+  detectStore();
   let started = false;
   function go() {
     if (started) return;

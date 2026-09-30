@@ -7,6 +7,11 @@
 // Run after editing index.html or js/i18n.js (no dependencies, Node 18+):
 //   node _build/prerender.mjs                                   # relative URLs (domain not decided yet)
 //   SITE_ORIGIN=https://example.com node _build/prerender.mjs   # absolute canonical/hreflang/og:url/og:image + sitemap.xml
+// RELEASE DAY (once the app is confirmed live on the App Store), re-run with STORE_LIVE=1:
+//   SITE_ORIGIN=https://legalxt.github.io/schedulelesson STORE_LIVE=1 node _build/prerender.mjs
+// That makes LIVE the static default (<html class="sl-live" data-store="released">, nav/menu CTA → store) for no-JS
+// visitors and crawlers, stops the runtime iTunes lookup (main.js) and adds downloadUrl/installUrl to the JSON-LD.
+// Without the flag the page is NOT LIVE by default and the JSON-LD has no download URL (the store page 404s before release).
 // The folder starts with "_" so GitHub Pages (Jekyll) does not publish it.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -18,6 +23,9 @@ const ORIGIN = (process.env.SITE_ORIGIN || '').replace(/\/+$/, '');
 const LANGS = ['uk', 'ru', 'en'];
 const PAGE = { uk: '', ru: 'ru.html', en: 'en.html' };
 const LOCALE = { uk: 'uk_UA', ru: 'ru_RU', en: 'en_US' };
+const STORE_URL = 'https://apps.apple.com/app/id6817674096'; // keep in sync with APP_ID in js/main.js
+const RELEASED = process.env.STORE_LIVE === '1';
+const OG_VER = '2'; // bump when assets/og-*.jpg change: Facebook/Telegram/Viber cache previews by image URL
 
 const box = { window: {} };
 vm.runInNewContext(fs.readFileSync(path.join(SITE, 'js/i18n.js'), 'utf8'), box);
@@ -85,7 +93,7 @@ function render(L) {
     const ia = attrOf(tag, 'data-i18n-attr');
     if (ia) ia.split(',').forEach(pair => {
       const [a, k] = pair.split(':').map(s => s.trim());
-      tag = setAttr(tag, a, a === 'href' || a === 'content' ? t(k) : typo(t(k), L));
+      tag = setAttr(tag, a, a === 'href' || a === 'content' || a === 'src' ? t(k) : typo(t(k), L));
     });
     const shot = attrOf(tag, 'data-shot');
     if (shot && name === 'img' && attrOf(tag, 'src') != null) tag = setAttr(tag, 'src', `assets/shots/${L}/${shot}.jpg`);
@@ -97,7 +105,10 @@ function render(L) {
     if (name === 'html') {
       tag = setAttr(tag, 'lang', L);
       tag = L === 'uk' ? tag.replace(/\sdata-page-lang="[^"]*"/, '') : setAttr(tag, 'data-page-lang', L);
+      tag = tag.replace(/\s(class|data-store)="[^"]*"/g, ''); // idempotent: index.html is both source and output
+      if (RELEASED) { tag = setAttr(tag, 'class', 'sl-live'); tag = setAttr(tag, 'data-store', 'released'); }
     }
+    if (/\sdata-cta[\s>]/.test(tag)) tag = setAttr(tag, 'href', RELEASED ? STORE_URL : '#join');
 
     // content
     let inner = null;
@@ -136,6 +147,7 @@ function render(L) {
     inLanguage: ['uk', 'en', 'ru'],
     image: abs('assets/icon.png'),
     ...(ORIGIN ? { url: abs(PAGE[L]) } : {}),
+    ...(RELEASED ? { downloadUrl: STORE_URL, installUrl: STORE_URL } : {}),
     offers: [
       { '@type': 'Offer', name: 'Free', price: '0', priceCurrency: 'USD' },
       { '@type': 'Offer', name: 'Pro (monthly)', price: '6.99', priceCurrency: 'USD' },
@@ -148,10 +160,10 @@ function render(L) {
     `<link rel="alternate" hreflang="x-default" href="${abs('')}">`,
     ...LANGS.filter(l => l !== L).map(l => `<meta property="og:locale:alternate" content="${LOCALE[l]}">`),
     ...(ORIGIN ? [`<meta property="og:url" content="${abs(PAGE[L])}">`] : []),
-    `<meta property="og:image" content="${abs(`assets/og-${L}.jpg`)}">`,
+    `<meta property="og:image" content="${abs(`assets/og-${L}.jpg?v=${OG_VER}`)}">`,
     '<meta property="og:image:width" content="1200">',
     '<meta property="og:image:height" content="630">',
-    `<meta name="twitter:image" content="${abs(`assets/og-${L}.jpg`)}">`,
+    `<meta name="twitter:image" content="${abs(`assets/og-${L}.jpg?v=${OG_VER}`)}">`,
     `<script type="application/ld+json">${JSON.stringify(ld)}</script>`,
   ].join('\n');
   out = out.replace(/(<!--seo:start[^>]*-->)[\s\S]*?(<!--seo:end-->)/, `$1\n${seo}\n$2`);
@@ -162,7 +174,7 @@ function render(L) {
 for (const L of LANGS) {
   const file = path.join(SITE, L === 'uk' ? 'index.html' : `${L}.html`);
   fs.writeFileSync(file, render(L));
-  console.log('wrote', path.relative(SITE, file));
+  console.log('wrote', path.relative(SITE, file), RELEASED ? '(STORE_LIVE: released default)' : '(not live default)');
 }
 
 if (ORIGIN) {

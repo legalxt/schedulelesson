@@ -173,6 +173,10 @@ function render(L) {
     '<meta property="og:image:height" content="630">',
     `<meta name="twitter:image" content="${abs(`assets/og-${L}.jpg?v=${OG_VER}`)}">`,
     `<script type="application/ld+json">${JSON.stringify(ld)}</script>`,
+    // site name for Google results ("Schedule Lesson" instead of a guessed name) — only on the homepage
+    ...(ORIGIN && L === 'uk'
+      ? [`<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@type': 'WebSite', name: 'Schedule Lesson', alternateName: 'schedulelesson.app', url: `${ORIGIN}/` })}</script>`]
+      : []),
   ].join('\n');
   out = out.replace(/(<!--seo:start[^>]*-->)[\s\S]*?(<!--seo:end-->)/, `$1\n${seo}\n$2`);
   if (!out.includes(seo)) throw new Error('seo markers not found');

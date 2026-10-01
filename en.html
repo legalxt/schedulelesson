@@ -13,17 +13,23 @@
     var mm = function (q) { try { return w.matchMedia(q).matches; } catch (e) { return false; } };
     if (!mm('(prefers-reduced-motion: reduce)') && !mm('(max-height: 500px) and (orientation: landscape)')) c.add('cine');
     setTimeout(function () { if (c.contains('cine') && !c.contains('cine-ready')) { c.remove('cine'); c.add('no-cine'); } }, 3500);
-    /* language: ?lang → language page (ru.html / en.html) → saved choice → browser language (people only) → uk */
-    var L = ['uk', 'ru', 'en'], ok = function (v) { return L.indexOf(v) > -1; }, page = h.getAttribute('data-page-lang'), l = null;
+    /* language: ?lang → language page (ru.html, en.html, pl.html …) → saved choice → browser language (people only:
+       the first supported one in navigator.languages, any other language → en) → the page's own language (uk on /).
+       Keep in sync with detectLang() in main.js */
+    var L = ['uk', 'ru', 'en', 'pl', 'de', 'fr', 'es', 'it'], ok = function (v) { return L.indexOf(v) > -1; }, page = h.getAttribute('data-page-lang'), l = null;
     try { l = new URLSearchParams(location.search).get('lang'); } catch (e) {}
     if (!ok(l) && ok(page) && page !== 'uk') l = page;
     if (!ok(l)) { try { l = localStorage.getItem('sl_lang'); } catch (e) {} }
     if (!ok(l) && !/bot|crawl|spider|slurp|preview|externalhit|embedly|lighthouse/i.test(navigator.userAgent || '')) {
-      var n = ((navigator.languages && navigator.languages[0]) || navigator.language || '').toLowerCase();
-      l = n.indexOf('ru') === 0 ? 'ru' : n.indexOf('en') === 0 ? 'en' : null;
+      var ns = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || ''];
+      for (var i = 0; i < ns.length && !ok(l); i++) l = String(ns[i] || '').toLowerCase().slice(0, 2);
+      if (!ok(l)) l = 'en';
     }
     if (!ok(l)) l = ok(page) ? page : 'uk';
     w.SL_LANG = l;
+    /* / ships Ukrainian static text: if another language was chosen, keep the page hidden until main.js applies it
+       (applyLang removes .sl-i18n), so visitors never see a Ukrainian flash; 3.5 s fallback for slow or failed scripts */
+    if (l !== (ok(page) ? page : 'uk')) { c.add('sl-i18n'); setTimeout(function () { c.remove('sl-i18n'); }, 3500); }
     /* App Store state (details in main.js, "App Store state"): ?live=1|0 QA override, else this session's cached lookup;
        after release (prerender STORE_LIVE=1 → data-store="released") LIVE is static and only ?live=0 turns it off */
     var lv = null, rel = h.getAttribute('data-store') === 'released';
@@ -57,15 +63,25 @@
 <link rel="alternate" hreflang="uk" href="https://legalxt.github.io/schedulelesson/">
 <link rel="alternate" hreflang="ru" href="https://legalxt.github.io/schedulelesson/ru.html">
 <link rel="alternate" hreflang="en" href="https://legalxt.github.io/schedulelesson/en.html">
+<link rel="alternate" hreflang="pl" href="https://legalxt.github.io/schedulelesson/pl.html">
+<link rel="alternate" hreflang="de" href="https://legalxt.github.io/schedulelesson/de.html">
+<link rel="alternate" hreflang="fr" href="https://legalxt.github.io/schedulelesson/fr.html">
+<link rel="alternate" hreflang="es" href="https://legalxt.github.io/schedulelesson/es.html">
+<link rel="alternate" hreflang="it" href="https://legalxt.github.io/schedulelesson/it.html">
 <link rel="alternate" hreflang="x-default" href="https://legalxt.github.io/schedulelesson/">
 <meta property="og:locale:alternate" content="uk_UA">
 <meta property="og:locale:alternate" content="ru_RU">
+<meta property="og:locale:alternate" content="pl_PL">
+<meta property="og:locale:alternate" content="de_DE">
+<meta property="og:locale:alternate" content="fr_FR">
+<meta property="og:locale:alternate" content="es_ES">
+<meta property="og:locale:alternate" content="it_IT">
 <meta property="og:url" content="https://legalxt.github.io/schedulelesson/en.html">
 <meta property="og:image" content="https://legalxt.github.io/schedulelesson/assets/og-en.jpg?v=2">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:image" content="https://legalxt.github.io/schedulelesson/assets/og-en.jpg?v=2">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Schedule Lesson","applicationCategory":"BusinessApplication","operatingSystem":"iOS 17 or later","description":"An iPhone app for private tutors: schedule, students, lesson packs and one-off lessons, payments and debts, a lesson journal, statistics, parent reports and payment reminders.","inLanguage":["uk","en","ru"],"image":"https://legalxt.github.io/schedulelesson/assets/icon.png","url":"https://legalxt.github.io/schedulelesson/en.html","offers":[{"@type":"Offer","name":"Free","price":"0","priceCurrency":"USD"},{"@type":"Offer","name":"Pro (monthly)","price":"6.99","priceCurrency":"USD"},{"@type":"Offer","name":"Pro (yearly)","price":"24.99","priceCurrency":"USD"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Schedule Lesson","applicationCategory":"BusinessApplication","operatingSystem":"iOS 17 or later","description":"An iPhone app for private tutors: schedule, students, lesson packs and one-off lessons, payments and debts, a lesson journal, statistics, parent reports and payment reminders.","inLanguage":["uk","en","ru","pl","de","fr","es","it"],"image":"https://legalxt.github.io/schedulelesson/assets/icon.png","url":"https://legalxt.github.io/schedulelesson/en.html","offers":[{"@type":"Offer","name":"Free","price":"0","priceCurrency":"USD"},{"@type":"Offer","name":"Pro (monthly)","price":"6.99","priceCurrency":"USD"},{"@type":"Offer","name":"Pro (yearly)","price":"24.99","priceCurrency":"USD"}]}</script>
 <!--seo:end-->
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -89,10 +105,18 @@
       <a href="#faq" data-i18n="nav.faq">FAQ</a>
     </nav>
     <div class="nav-right">
-      <div class="langs" role="group" data-i18n-attr="aria-label:nav.lang" aria-label="Site language">
-        <button type="button" class="lang-btn" data-lang="uk" lang="uk" aria-pressed="false" aria-label="UA — Українська">UA</button>
-        <button type="button" class="lang-btn" data-lang="ru" lang="ru" aria-pressed="false" aria-label="RU — Русский">RU</button>
-        <button type="button" class="lang-btn" data-lang="en" lang="en" aria-pressed="true" aria-label="EN — English">EN</button>
+      <div class="lang" id="lang">
+        <button type="button" class="lang-btn" id="langBtn" aria-expanded="false" aria-controls="langPop"><svg class="lang-globe" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.4 2.5 3.6 5.5 3.6 9s-1.2 6.5-3.6 9c-2.4-2.5-3.6-5.5-3.6-9S9.6 5.5 12 3z"/></svg><span class="lang-code" aria-hidden="true" data-i18n="lang.code">EN</span><span class="sr-only" data-i18n="nav.lang.cur">Site language: English</span><svg class="lang-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></button>
+        <ul class="lang-pop" id="langPop" data-i18n-attr="aria-label:nav.lang" aria-label="Site language">
+          <li><a class="lang-opt" href="./" hreflang="uk" lang="uk" data-lang="uk">Українська</a></li>
+          <li><a class="lang-opt" href="ru.html" hreflang="ru" lang="ru" data-lang="ru">Русский</a></li>
+          <li><a class="lang-opt" href="en.html" hreflang="en" lang="en" data-lang="en" aria-current="true">English</a></li>
+          <li><a class="lang-opt" href="pl.html" hreflang="pl" lang="pl" data-lang="pl">Polski</a></li>
+          <li><a class="lang-opt" href="de.html" hreflang="de" lang="de" data-lang="de">Deutsch</a></li>
+          <li><a class="lang-opt" href="fr.html" hreflang="fr" lang="fr" data-lang="fr">Français</a></li>
+          <li><a class="lang-opt" href="es.html" hreflang="es" lang="es" data-lang="es">Español</a></li>
+          <li><a class="lang-opt" href="it.html" hreflang="it" lang="it" data-lang="it">Italiano</a></li>
+        </ul>
       </div>
       <a class="nav-cta btn-cta" href="#join" target="_self" data-cta><span class="full"><span class="st-soon" data-i18n="nav.soon">Coming soon</span><span class="st-live" data-i18n="nav.get">Download</span></span><span class="short"><span class="st-soon" data-i18n="nav.soon.short">Coming soon</span><span class="st-live" data-i18n="nav.get.short">Download</span></span></a>
       <button type="button" class="burger" id="burger" aria-expanded="false" aria-controls="menu" data-i18n-attr="aria-label:nav.menu.open" aria-label="Open menu"><i></i><i></i></button>
@@ -105,10 +129,18 @@
       <a href="#pricing" data-i18n="nav.pricing">Pricing</a>
       <a href="#faq" data-i18n="nav.faq">FAQ</a>
     </nav>
-    <div class="langs langs-lg" role="group" data-i18n-attr="aria-label:nav.lang" aria-label="Site language">
-      <button type="button" class="lang-btn" data-lang="uk" lang="uk" aria-pressed="false">Українська</button>
-      <button type="button" class="lang-btn" data-lang="ru" lang="ru" aria-pressed="false">Русский</button>
-      <button type="button" class="lang-btn" data-lang="en" lang="en" aria-pressed="true">English</button>
+    <div class="menu-langs">
+      <p class="menu-lang-h" id="menuLangH" data-i18n="nav.lang">Site language</p>
+      <ul class="lang-grid" aria-labelledby="menuLangH">
+        <li><a class="lang-opt" href="./" hreflang="uk" lang="uk" data-lang="uk">Українська</a></li>
+        <li><a class="lang-opt" href="ru.html" hreflang="ru" lang="ru" data-lang="ru">Русский</a></li>
+        <li><a class="lang-opt" href="en.html" hreflang="en" lang="en" data-lang="en" aria-current="true">English</a></li>
+        <li><a class="lang-opt" href="pl.html" hreflang="pl" lang="pl" data-lang="pl">Polski</a></li>
+        <li><a class="lang-opt" href="de.html" hreflang="de" lang="de" data-lang="de">Deutsch</a></li>
+        <li><a class="lang-opt" href="fr.html" hreflang="fr" lang="fr" data-lang="fr">Français</a></li>
+        <li><a class="lang-opt" href="es.html" hreflang="es" lang="es" data-lang="es">Español</a></li>
+        <li><a class="lang-opt" href="it.html" hreflang="it" lang="it" data-lang="it">Italiano</a></li>
+      </ul>
     </div>
     <a class="btn btn-cta menu-cta" href="#join" target="_self" data-cta><span class="st-soon" data-i18n="store.soon">Coming soon to the App Store</span><span class="st-live" data-i18n="price.get">Download on the App Store</span></a>
   </div>
@@ -207,7 +239,7 @@
 
     <svg class="leaders" aria-hidden="true"></svg>
     <ol class="labels">
-      <li class="lab"><span class="n">01</span><b data-i18n="l1.t">Next lesson</b><p data-i18n="l1.d">Who, what and when&nbsp;— with a live countdown: “in 42:51”.</p></li>
+      <li class="lab"><span class="n">01</span><b data-i18n="l1.t">Next lesson</b><p data-i18n="l1.d">Who, what and when&nbsp;— with a live countdown: “in&nbsp;42:51”.</p></li>
       <li class="lab"><span class="n">02</span><b data-i18n="l2.t">Your week in one row</b><p data-i18n="l2.d">One tap and you’re on the right day.</p></li>
       <li class="lab"><span class="n">03</span><b data-i18n="l3.t">Lesson pack 5/8</b><p data-i18n="l3.d">How many lessons are left&nbsp;— no counting required.</p></li>
       <li class="lab"><span class="n">04</span><b data-i18n="l4.t">Today’s lessons</b><p data-i18n="l4.d">Time, student, subject, payment type. Taught it? Check it off with one tap.</p></li>
@@ -274,7 +306,7 @@
       </article>
 
       <article class="tile t-lock" data-play="lock">
-        <div class="tcopy"><h3 data-i18n="lock.t">Lesson on the Lock Screen</h3><p data-i18n="lock.d">A live timer in the Dynamic Island and one-tap check-off.</p></div>
+        <div class="tcopy"><h3 data-i18n="lock.t">Lesson on the Lock Screen</h3><p data-i18n="lock.d">A live timer in the Dynamic&nbsp;Island and one-tap check-off.</p></div>
         <div class="lockui" aria-hidden="true">
           <div class="lk-time">09:41</div>
           <div class="lk-date" data-i18n="lock.date">Sunday, September 20</div>
@@ -295,7 +327,7 @@
             <svg viewBox="0 0 120 120"><defs><linearGradient id="gPink" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF6B6B"/><stop offset="1" stop-color="#FF70BF"/></linearGradient></defs><circle cx="60" cy="60" r="50" class="trk"/><circle cx="60" cy="60" r="50" class="val" pathLength="100"/></svg>
             <span class="ring-num"><span class="rn"><b data-count="81">81</b>%</span><small data-i18n="stats.att">attendance</small></span>
           </div>
-          <div class="income"><small data-i18n="stats.inc">September income</small><b data-money="17300">$17,300</b></div>
+          <div class="income"><small data-i18n="stats.inc">September income</small><b data-money="stats.incv">$17,300</b></div>
         </div>
       </article>
 
@@ -429,7 +461,7 @@
           <li data-i18n="pro.f4">Parent reports: attendance, what you covered, payment and your comment</li>
           <li data-i18n="pro.f5">Attendance analytics: missed lessons, lost income, reliability</li>
           <li data-i18n="pro.f6">“My Day” Home Screen widget</li>
-          <li data-i18n="pro.f7">Lesson on the Lock Screen: a live timer in the Dynamic Island</li>
+          <li data-i18n="pro.f7">Lesson on the Lock Screen: a live timer in the Dynamic&nbsp;Island</li>
           <li data-i18n="pro.f8">Siri &amp; Shortcuts</li>
           <li data-i18n="pro.f9">Apple Watch: next lesson and check-off from your wrist</li>
         </ul>
@@ -439,7 +471,7 @@
     </div>
     <div class="price-notes" data-reveal>
       <p data-i18n="price.note1">The App Store shows prices in your local currency.</p>
-      <p data-i18n="price.note2">Cancel anytime in iPhone Settings&nbsp;→ Apple ID&nbsp;→ Subscriptions.</p>
+      <p data-i18n="price.note2">Cancel anytime in iPhone Settings&nbsp;→ your name&nbsp;→ Subscriptions.</p>
     </div>
   </div>
 </section>
@@ -455,9 +487,9 @@
       <details class="qa"><summary><h3 data-i18n="faq.1.q">Where can I get Schedule Lesson?</h3><i aria-hidden="true"></i></summary><div class="qa-a"><p class="st-soon" data-i18n-html="faq.1.a">Coming soon to the App Store, for iPhone with iOS 17 or later. Once it’s out, the buttons on this page will take you straight there.</p><p class="st-live" data-i18n-html="faq.1.a.live">On the App Store, for iPhone with iOS 17 or later&nbsp;— just search for “Schedule Lesson”. Availability depends on your App Store country or region.</p></div></details>
       <details class="qa"><summary><h3 data-i18n="faq.2.q">Will there be an Android version?</h3><i aria-hidden="true"></i></summary><div class="qa-a"><p data-i18n-html="faq.2.a">For now, it’s iPhone only.</p></div></details>
       <details class="qa"><summary><h3 data-i18n="faq.3.q">Where is my data stored?</h3><i aria-hidden="true"></i></summary><div class="qa-a"><p data-i18n-html="faq.3.a">In your own cloud account, fully synced. New iPhone or a reinstall&nbsp;— just sign in and everything is there. Only you can see your data. Sign in with email, Apple or Google.</p></div></details>
-      <details class="qa"><summary><h3 data-i18n="faq.4.q">Which languages does the app support?</h3><i aria-hidden="true"></i></summary><div class="qa-a"><p data-i18n-html="faq.4.a">Ukrainian, English and Russian.</p></div></details>
+      <details class="qa"><summary><h3 data-i18n="faq.4.q">Which languages does the app support?</h3><i aria-hidden="true"></i></summary><div class="qa-a"><p data-i18n-html="faq.4.a">Ukrainian, English, Russian, Polish, German, French, Spanish and Italian.</p></div></details>
       <details class="qa"><summary><h3 data-i18n="faq.5.q">I have 2–3 students. Do I have to pay?</h3><i aria-hidden="true"></i></summary><div class="qa-a"><p data-i18n-html="faq.5.a">No. The free version covers up to 3 students, 1 lesson-pack template, the schedule with one-tap check-off and the lesson journal&nbsp;— with no time limit.</p></div></details>
-      <details class="qa"><summary><h3 data-i18n="faq.6.q">How do I cancel Pro?</h3><i aria-hidden="true"></i></summary><div class="qa-a"><p data-i18n-html="faq.6.a">Anytime, in iPhone Settings&nbsp;→ Apple ID&nbsp;→ Subscriptions. Pro is $6.99 a month or $24.99 a year (the yearly plan includes a 7-day free trial); the App Store shows the price in your currency.</p></div></details>
+      <details class="qa"><summary><h3 data-i18n="faq.6.q">How do I cancel Pro?</h3><i aria-hidden="true"></i></summary><div class="qa-a"><p data-i18n-html="faq.6.a">Anytime, in iPhone Settings&nbsp;→ your name&nbsp;→ Subscriptions. Pro is $6.99 a month or $24.99 a year (the yearly plan includes a 7-day free trial); the App Store shows the price in your currency.</p></div></details>
       <details class="qa"><summary><h3 data-i18n="faq.7.q">Which iPhone do I need?</h3><i aria-hidden="true"></i></summary><div class="qa-a"><p data-i18n-html="faq.7.a">Any iPhone running iOS 17 or later.</p></div></details>
       <details class="qa"><summary><h3 data-i18n="faq.8.q">How can I contact you?</h3><i aria-hidden="true"></i></summary><div class="qa-a"><p data-i18n-html="faq.8.a">Email us at <a href="mailto:supportschedulelesson@gmail.com">supportschedulelesson@gmail.com</a>&nbsp;— we’ll get back to you.</p></div></details>
     </div>
@@ -478,7 +510,7 @@
     </div>
     <p class="store-note st-live" data-i18n="store.note">For iPhone · iOS 17+</p>
     <ul class="facts">
-      <li data-i18n="fact.1">Ukrainian, English, Russian</li>
+      <li data-i18n="fact.1">English · Українська · Русский · Polski · Deutsch · Français · Español · Italiano</li>
       <li data-i18n="fact.2">Your data lives in your own cloud account</li>
       <li data-i18n="fact.3">Sign in with email, Apple or Google</li>
     </ul>

@@ -1,5 +1,5 @@
 // Pre-renders one static HTML page per language from index.html + js/i18n.js:
-//   index.html (uk, also x-default), ru.html, en.html
+//   index.html (uk, also x-default), ru.html, en.html, pl.html, de.html, fr.html, es.html, it.html
 // so crawlers, link-preview bots and no-JS visitors get the right language, title, description,
 // og/twitter tags and hreflang without running JavaScript. main.js still re-applies the language
 // at runtime (switching in place and updating the URL to the matching page).
@@ -20,9 +20,9 @@ import { fileURLToPath } from 'node:url';
 
 const SITE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ORIGIN = (process.env.SITE_ORIGIN || '').replace(/\/+$/, '');
-const LANGS = ['uk', 'ru', 'en'];
-const PAGE = { uk: '', ru: 'ru.html', en: 'en.html' };
-const LOCALE = { uk: 'uk_UA', ru: 'ru_RU', en: 'en_US' };
+const LANGS = ['uk', 'ru', 'en', 'pl', 'de', 'fr', 'es', 'it']; // keep in sync with LANGS in js/main.js and the <head> script
+const PAGE = { uk: '', ru: 'ru.html', en: 'en.html', pl: 'pl.html', de: 'de.html', fr: 'fr.html', es: 'es.html', it: 'it.html' };
+const LOCALE = { uk: 'uk_UA', ru: 'ru_RU', en: 'en_US', pl: 'pl_PL', de: 'de_DE', fr: 'fr_FR', es: 'es_ES', it: 'it_IT' };
 const STORE_URL = 'https://apps.apple.com/app/id6817674096'; // keep in sync with APP_ID in js/main.js
 const RELEASED = process.env.STORE_LIVE === '1';
 const OG_VER = '2'; // bump when assets/og-*.jpg change: Facebook/Telegram/Viber cache previews by image URL
@@ -33,21 +33,26 @@ const D = box.window.SL_I18N;
 const src = fs.readFileSync(path.join(SITE, 'index.html'), 'utf8');
 
 /* ---- the same text helpers as js/main.js (keep in sync) ---- */
-const NB = ' ';
+const NB = '\u00a0';
+const CYR1 = /(^|[\s(«"„])([вуійзаоиксяВУІЙЗАОИКСЯ])\s(?=\S)/g;
+const ONE = { uk: CYR1, ru: CYR1, pl: /(^|[\s(„"])([aiouwzAIOUWZ])\s(?=\S)/g };
 function typoText(v, l) {
-  let r = v.replace(/ (—|–|→)/g, NB + '$1').replace(/(\d) (?=\d{3}(?!\d))/g, '$1' + NB).replace(/ ₴/g, NB + '₴');
-  if (l !== 'en') {
-    const re = /(^|[\s(«"„])([вуійзаоиксяВУІЙЗАОИКСЯ])\s(?=\S)/g;
-    r = r.replace(re, '$1$2' + NB).replace(re, '$1$2' + NB);
-  }
+  let r = v.replace(/ (—|–|→)/g, NB + '$1').replace(/(\d) (?=\d{3}(?!\d))/g, '$1' + NB).replace(/ (₴|€|zł)/g, NB + '$1');
+  const re = ONE[l];
+  if (re) r = r.replace(re, '$1$2' + NB).replace(re, '$1$2' + NB);
+  if (l === 'fr') r = r.replace(/ ([:;!?»])/g, NB + '$1').replace(/« /g, '«' + NB);
   return r;
 }
-const typo = (v, l, isHtml = false) => (!v ? v : !isHtml ? typoText(v, l) : v.replace(/(<[^>]+>)|([^<]+)/g, (m, tag, txt) => tag || typoText(txt, l)));
+const ONE_CH = { uk: 'вуійзаоиксяВУІЙЗАОИКСЯ', ru: 'вуійзаоиксяВУІЙЗАОИКСЯ', pl: 'aiouwzAIOUWZ' };
+const glueTag = (v, l) => (ONE_CH[l] ? v.replace(new RegExp('(^|[\\s(«"„>])([' + ONE_CH[l] + ']) (?=<[a-z])', 'g'), '$1$2' + NB) : v); // "і <em>…"
+const typo = (v, l, isHtml = false) => (!v ? v : !isHtml ? typoText(v, l) : glueTag(v, l).replace(/(<[^>]+>)|([^<]+)/g, (m, tag, txt) => tag || typoText(txt, l)));
 const TAGS = { g: 'gt', m: 'gt-m', d: 'dim-txt' };
 const rich = v => v.replace(/<(\/?)([gmd])>/g, (m, c, tag) => (c ? '</span>' : `<span class="${TAGS[tag]}">`));
 const fill = (s, o) => s.replace(/\{(\w+)\}/g, (m, k) => (o[k] != null ? o[k] : m));
+const CUR = { pl: ['pl-PL', 'PLN'], de: ['de-DE', 'EUR'], fr: ['fr-FR', 'EUR'], es: ['es-ES', 'EUR'], it: ['it-IT', 'EUR'] };
 function fmtMoney(v, l) {
   if (l === 'en') return '$' + Number(v).toLocaleString('en-US');
+  if (CUR[l]) return new Intl.NumberFormat(CUR[l][0], { style: 'currency', currency: CUR[l][1], maximumFractionDigits: 0, minimumFractionDigits: 0, useGrouping: l === 'de' ? 'auto' : 'min2' }).format(Number(v)).replace(/[\s\u202f]/g, NB);
   return Number(v).toLocaleString('uk-UA').replace(/\s/g, NB) + NB + '₴';
 }
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/ /g, '&nbsp;');
@@ -98,10 +103,13 @@ function render(L) {
     const shot = attrOf(tag, 'data-shot');
     if (shot && name === 'img' && attrOf(tag, 'src') != null) tag = setAttr(tag, 'src', `assets/shots/${L}/${shot}.jpg`);
     const altK = attrOf(tag, 'data-alt');
-    if (altK) tag = setAttr(tag, 'alt', t(altK));
+    if (altK) tag = setAttr(tag, 'alt', typo(t(altK), L));
     const altShot = attrOf(tag, 'data-alt-shot');
-    if (altShot) tag = setAttr(tag, 'alt', fill(t('shot.alt'), { t: t(`g.${altShot}.t`), d: t(`g.${altShot}.d`) }));
-    if (/\sclass="lang-btn"/.test(tag)) tag = setAttr(tag, 'aria-pressed', String(attrOf(tag, 'data-lang') === L));
+    if (altShot) tag = setAttr(tag, 'alt', typo(fill(t('shot.alt'), { t: t(`g.${altShot}.t`), d: t(`g.${altShot}.d`) }), L));
+    if (/\sclass="lang-opt"/.test(tag)) { // language menu: mark this page's language
+      tag = tag.replace(/\saria-current="[^"]*"/, '');
+      if (attrOf(tag, 'data-lang') === L) tag = setAttr(tag, 'aria-current', 'true');
+    }
     if (name === 'html') {
       tag = setAttr(tag, 'lang', L);
       tag = L === 'uk' ? tag.replace(/\sdata-page-lang="[^"]*"/, '') : setAttr(tag, 'data-page-lang', L);
@@ -117,7 +125,7 @@ function render(L) {
     else if (k2) inner = nbspEnt(rich(typo(t(k2), L, true)));
     else if (k3) inner = t(k3).split('|').map(line => `<span class="ln"><span>${nbspEnt(rich(typo(line, L, true)))}</span></span>`).join(' ');
     else if (k4) inner = nbspEnt(rich(typo(t(k4), L, true)));
-    else if (money) inner = esc(fmtMoney(money, L));
+    else if (money) inner = esc(fmtMoney(/^\d+$/.test(money) ? money : t(money), L));
     else if (name === 'title') inner = esc(t('meta.title'));
     else if (name === 'div' && /\sclass="avs"/.test(tag)) {
       const end = closeIndex(src, i, 'div');
@@ -144,7 +152,7 @@ function render(L) {
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'iOS 17 or later',
     description: 'An iPhone app for private tutors: schedule, students, lesson packs and one-off lessons, payments and debts, a lesson journal, statistics, parent reports and payment reminders.',
-    inLanguage: ['uk', 'en', 'ru'],
+    inLanguage: ['uk', 'en', 'ru', 'pl', 'de', 'fr', 'es', 'it'],
     image: abs('assets/icon.png'),
     ...(ORIGIN ? { url: abs(PAGE[L]) } : {}),
     ...(RELEASED ? { downloadUrl: STORE_URL, installUrl: STORE_URL } : {}),
@@ -178,7 +186,8 @@ for (const L of LANGS) {
 }
 
 if (ORIGIN) {
-  const urls = LANGS.map(l => `  <url>\n    <loc>${ORIGIN}/${PAGE[l]}</loc>\n${LANGS.map(a => `    <xhtml:link rel="alternate" hreflang="${a}" href="${ORIGIN}/${PAGE[a]}"/>`).join('\n')}\n  </url>`).join('\n');
+  const alts = [...LANGS.map(a => `    <xhtml:link rel="alternate" hreflang="${a}" href="${ORIGIN}/${PAGE[a]}"/>`), `    <xhtml:link rel="alternate" hreflang="x-default" href="${ORIGIN}/"/>`].join('\n');
+  const urls = LANGS.map(l => `  <url>\n    <loc>${ORIGIN}/${PAGE[l]}</loc>\n${alts}\n  </url>`).join('\n');
   fs.writeFileSync(path.join(SITE, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls}\n</urlset>\n`);
   fs.writeFileSync(path.join(SITE, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${ORIGIN}/sitemap.xml\n`);
   console.log('wrote sitemap.xml, robots.txt');

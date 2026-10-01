@@ -7,7 +7,8 @@
   'use strict';
 
   const D = window.SL_I18N || {};
-  const LANGS = ['uk', 'ru', 'en'];
+  const LANGS = ['uk', 'ru', 'en', 'pl', 'de', 'fr', 'es', 'it'];
+  const PAGE = { uk: '', ru: 'ru.html', en: 'en.html', pl: 'pl.html', de: 'de.html', fr: 'fr.html', es: 'es.html', it: 'it.html' };
   const html = document.documentElement;
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
@@ -26,30 +27,34 @@
     if (q && LANGS.includes(q)) return q;
     try { s = localStorage.getItem('sl_lang'); } catch (e) { /* storage blocked */ }
     if (s && LANGS.includes(s)) return s;
-    const n = ((navigator.languages && navigator.languages[0]) || navigator.language || '').toLowerCase();
-    if (n.startsWith('ru')) return 'ru';
-    if (n.startsWith('en')) return 'en';
-    return 'uk';
+    // the first supported language in the browser's list; any other language → English
+    const ns = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ''];
+    for (const n of ns) { const c = String(n || '').toLowerCase().slice(0, 2); if (LANGS.includes(c)) return c; }
+    return 'en';
   }
   let lang = detectLang();
   const t = (k, l = lang) => (D[l] && D[l][k] != null ? D[l][k] : (D.uk && D.uk[k] != null ? D.uk[k] : ''));
   const fill = (s, o) => s.replace(/\{(\w+)\}/g, (m, k) => (o[k] != null ? o[k] : m));
 
-  // typography: no line-start dashes; glue one-letter words (uk/ru) to the next word
-  const NB = ' ';
+  // typography (keep in sync with _build/prerender.mjs): no line-start dashes; glue currency to the amount;
+  // glue one-letter words to the next word (uk/ru, pl); French spacing before : ; ! ? » and after «
+  const NB = '\u00a0';
+  const CYR1 = /(^|[\s(«"„])([вуійзаоиксяВУІЙЗАОИКСЯ])\s(?=\S)/g;
+  const ONE = { uk: CYR1, ru: CYR1, pl: /(^|[\s(„"])([aiouwzAIOUWZ])\s(?=\S)/g };
+  const ONE_CH = { uk: 'вуійзаоиксяВУІЙЗАОИКСЯ', ru: 'вуійзаоиксяВУІЙЗАОИКСЯ', pl: 'aiouwzAIOUWZ' };
   function typoText(v, l) {
     let r = v.replace(/ (—|–|→)/g, NB + '$1')
       .replace(/(\d) (?=\d{3}(?!\d))/g, '$1' + NB) // 2 100
-      .replace(/ ₴/g, NB + '₴');
-    if (l !== 'en') {
-      const re = /(^|[\s(«"„])([вуійзаоиксяВУІЙЗАОИКСЯ])\s(?=\S)/g;
-      r = r.replace(re, '$1$2' + NB).replace(re, '$1$2' + NB);
-    }
+      .replace(/ (₴|€|zł)/g, NB + '$1');
+    const re = ONE[l];
+    if (re) r = r.replace(re, '$1$2' + NB).replace(re, '$1$2' + NB);
+    if (l === 'fr') r = r.replace(/ ([:;!?»])/g, NB + '$1').replace(/« /g, '«' + NB);
     return r;
   }
   function typo(v, l = lang, isHtml = false) {
     if (!v) return v;
     if (!isHtml) return typoText(v, l);
+    if (ONE_CH[l]) v = v.replace(new RegExp('(^|[\\s(«"„>])([' + ONE_CH[l] + ']) (?=<[a-z])', 'g'), '$1$2' + NB); // "і <em>…": one-letter word before an inline tag
     return v.replace(/(<[^>]+>)|([^<]+)/g, (m, tag, txt) => (tag || typoText(txt, l)));
   }
   const TAGS = { g: 'gt', m: 'gt-m', d: 'dim-txt' };
@@ -80,10 +85,20 @@
     walk(tmp, '');
     return tmp.innerHTML;
   }
+  // demo amounts in each language's demo currency, grouped like the app's statistics screen (1.625 € / 1543 € / 4070 zł)
+  const CUR = { pl: ['pl-PL', 'PLN'], de: ['de-DE', 'EUR'], fr: ['fr-FR', 'EUR'], es: ['es-ES', 'EUR'], it: ['it-IT', 'EUR'] };
   function fmtMoney(v, l = lang) {
     if (l === 'en') return '$' + Number(v).toLocaleString('en-US');
+    if (CUR[l]) {
+      try {
+        return new Intl.NumberFormat(CUR[l][0], { style: 'currency', currency: CUR[l][1], maximumFractionDigits: 0, minimumFractionDigits: 0, useGrouping: l === 'de' ? 'auto' : 'min2' })
+          .format(Number(v)).replace(/[\s\u202f]/g, NB);
+      } catch (e) { return Number(v) + NB + CUR[l][1]; }
+    }
     return Number(v).toLocaleString('uk-UA').replace(/\s/g, NB) + NB + '₴';
   }
+  // data-money holds an i18n key with the amount (each language has its own demo currency) or a plain number
+  const moneyVal = el => Number(/^\d+$/.test(el.dataset.money) ? el.dataset.money : t(el.dataset.money)) || 0;
 
   const menu = $('#menu');
   const burger = $('#burger');
@@ -107,29 +122,30 @@
       const src = `assets/shots/${lang}/${img.dataset.shot}.jpg`;
       if (img.getAttribute('src') !== src) img.setAttribute('src', src);
     });
-    $$('[data-alt]').forEach(img => { img.alt = t(img.dataset.alt); });
+    $$('[data-alt]').forEach(img => { img.alt = typo(t(img.dataset.alt)); });
     $$('[data-alt-shot]').forEach(img => {
       const n = img.dataset.altShot;
-      img.alt = fill(t('shot.alt'), { t: t(`g.${n}.t`), d: t(`g.${n}.d`) });
+      img.alt = typo(fill(t('shot.alt'), { t: t(`g.${n}.t`), d: t(`g.${n}.d`) }));
     });
     const slides = $$('.car-item');
     slides.forEach(li => li.setAttribute('aria-label', fill(t('screens.of'), { n: li.dataset.of, total: slides.length })));
-    $$('[data-money]').forEach(el => { el.textContent = fmtMoney(el.dataset.money); });
+    $$('[data-money]').forEach(el => { el.textContent = fmtMoney(moneyVal(el)); });
     const avs = t('unl.avs').split(',');
     $$('.avs .av:not(.av-more)').forEach((el, i) => { el.textContent = avs[i] || ''; });
-    $$('.lang-btn').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
+    $$('.lang-opt').forEach(a => { if (a.dataset.lang === lang) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current'); });
     if (menu && !menu.hidden) burger.setAttribute('aria-label', t('nav.menu.close'));
     if (save) {
       try { localStorage.setItem('sl_lang', lang); } catch (e) { /* ignore */ }
-      try { // each language has its own static page: / (uk), ru.html, en.html
+      try { // each language has its own static page: / (uk), ru.html, en.html, pl.html, de.html, fr.html, es.html, it.html
         const u = new URL(location.href);
         u.searchParams.delete('lang');
-        u.pathname = u.pathname.replace(/[^/]*$/, '') + (lang === 'uk' ? '' : lang + '.html');
+        u.pathname = u.pathname.replace(/[^/]*$/, '') + PAGE[lang];
         history.replaceState(history.state, '', u.pathname + u.search + u.hash);
       } catch (e) { /* ignore */ }
     }
     if (built) rebuild();
     else if (typeof aiRender === 'function') aiRender(aiP);
+    html.classList.remove('sl-i18n'); // set in the <head> script while / still shows the Ukrainian static text
   }
 
   /* ============================== live countdown ============================== */
@@ -172,8 +188,48 @@
   nav.addEventListener('focusout', e => {
     if (!menu.hidden && e.relatedTarget && !nav.contains(e.relatedTarget)) setMenu(false, { focus: false });
   });
-  $$('.lang-btn').forEach(b => b.addEventListener('click', () => {
-    if (b.dataset.lang !== lang) applyLang(b.dataset.lang, { save: true });
+
+  /* language menu: a disclosure button + a list of real links (one per language page). With JS the switch happens
+     in place (no reload) and the URL is updated to the matching page; the links stay usable for crawlers,
+     "open in new tab" and middle-click. Keyboard: Enter/Space/↓ opens, ↑/↓/Home/End move, Escape closes. */
+  const langBox = $('#lang'), langBtn = $('#langBtn');
+  const langItems = () => $$('#langPop .lang-opt');
+  function setLangPop(open, { focus = false } = {}) {
+    if (!langBox) return;
+    langBox.classList.toggle('open', open);
+    langBtn.setAttribute('aria-expanded', String(open));
+    if (open && focus) { const items = langItems(); (items.find(a => a.dataset.lang === lang) || items[0]).focus(); }
+  }
+  if (langBox) {
+    langBtn.addEventListener('click', e => {
+      const open = !langBox.classList.contains('open');
+      setLangPop(open, { focus: open && e.detail === 0 }); // keyboard activation moves focus into the list
+    });
+    langBtn.addEventListener('keydown', e => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); e.stopPropagation(); setLangPop(true, { focus: true }); } // stop: #lang's handler would move focus one more step
+    });
+    langBox.addEventListener('keydown', e => {
+      if (!langBox.classList.contains('open')) return;
+      const items = langItems(), i = items.indexOf(document.activeElement);
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); setLangPop(false); langBtn.focus(); return; }
+      if (i < 0) return;
+      let j = -1;
+      if (e.key === 'ArrowDown') j = (i + 1) % items.length;
+      else if (e.key === 'ArrowUp') j = (i - 1 + items.length) % items.length;
+      else if (e.key === 'Home') j = 0;
+      else if (e.key === 'End') j = items.length - 1;
+      if (j > -1) { e.preventDefault(); items[j].focus(); }
+    });
+    langBox.addEventListener('focusout', e => { if (e.relatedTarget && !langBox.contains(e.relatedTarget)) setLangPop(false); });
+    document.addEventListener('click', e => { if (!langBox.contains(e.target)) setLangPop(false); });
+  }
+  $$('.lang-opt').forEach(a => a.addEventListener('click', e => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button > 0) return; // new tab / window: plain link
+    e.preventDefault();
+    const l = a.dataset.lang;
+    if (langBox && langBox.contains(a)) { setLangPop(false); langBtn.focus(); }
+    else if (!menu.hidden) { setMenu(false, { focus: false }); burger.focus(); }
+    if (l !== lang) applyLang(l, { save: true });
   }));
 
   /* ============================== scrolling helpers ============================== */
@@ -598,6 +654,7 @@
     const plays = {
       stats(tile) {
         const ring = $('.val', tile), pct = $('[data-count]', tile), inc = $('[data-money]', tile);
+        const total = moneyVal(inc), step = total >= 10000 ? 100 : 10;
         gsap.set(ring, { strokeDashoffset: 100 });
         pct.textContent = '0'; inc.textContent = fmtMoney(0);
         return () => {
@@ -605,7 +662,7 @@
           gsap.to(ring, { strokeDashoffset: 19, duration: 1.3, ease: 'power3.out' });
           gsap.to(o, { v: 1, duration: 1.3, ease: 'power3.out', onUpdate: () => {
             pct.textContent = Math.round(81 * o.v);
-            inc.textContent = fmtMoney(Math.round((17300 * o.v) / 100) * 100);
+            inc.textContent = fmtMoney(o.v >= 1 ? total : Math.round((total * o.v) / step) * step);
           } });
         };
       },

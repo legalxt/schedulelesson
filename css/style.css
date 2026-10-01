@@ -75,10 +75,23 @@ ul,ol{list-style:none}
 .nav-links a{padding:10px 0;transition:color .2s}
 .nav-links a:hover{color:var(--fg)}
 .nav-right{display:flex;align-items:center;gap:14px}
-.langs{display:flex;align-items:center;gap:2px;padding:3px;border-radius:99px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
-.lang-btn{font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--g1);padding:6px 9px;border-radius:99px;min-width:34px;transition:color .2s,background-color .2s}
-.lang-btn:hover{color:var(--fg)}
-.lang-btn[aria-pressed="true"]{color:#fff;background:rgba(255,255,255,.14)}
+.lang{position:relative}
+.lang-btn{position:relative;display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 10px 0 9px;border-radius:99px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:var(--g1);font-size:12px;font-weight:600;letter-spacing:.04em;transition:color .2s,background-color .2s,border-color .2s}
+.lang-btn::after{content:"";position:absolute;inset:-5px -2px}/* 44px touch target */
+.lang-btn:hover,.lang.open .lang-btn{color:var(--fg);background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.14)}
+.lang-btn svg{fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.lang-globe{width:15px;height:15px;stroke-width:1.5}
+.lang-chev{width:11px;height:11px;stroke-width:2.4;margin-left:-1px;transition:transform .2s}
+.lang.open .lang-chev{transform:rotate(180deg)}
+.lang-code{min-width:17px;text-align:left}
+/* popover: hidden with visibility (out of the tab order and the accessibility tree), fades like a macOS menu */
+.lang-pop{position:absolute;right:0;top:calc(100% + 10px);z-index:5;min-width:206px;padding:6px;border-radius:16px;background:rgba(28,27,34,.94);-webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px);border:1px solid rgba(255,255,255,.1);box-shadow:0 24px 60px -12px rgba(0,0,0,.75),0 0 0 .5px rgba(0,0,0,.6);opacity:0;visibility:hidden;transform:translateY(-6px) scale(.98);transform-origin:top right;transition:opacity .16s ease,transform .16s ease,visibility 0s linear .16s}
+.lang.open .lang-pop{opacity:1;visibility:visible;transform:none;transition:opacity .16s ease,transform .16s ease}
+.lang-opt{position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:38px;padding:8px 12px;border-radius:10px;font-size:14px;font-weight:500;letter-spacing:-.01em;color:var(--fg);white-space:nowrap;transition:background-color .15s}
+.lang-opt:hover,.lang-opt:focus-visible{background:rgba(255,255,255,.09)}
+.lang-opt:focus-visible{outline:none;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55)}
+.lang-opt[aria-current="true"]{font-weight:600}
+.lang-opt[aria-current="true"]::after{content:"";flex:none;width:11px;height:6px;margin:-3px 2px 0 0;border:solid var(--mint);border-width:0 0 2px 2px;transform:rotate(-45deg)}
 .btn-cta{background:var(--cta);color:#fff;font-weight:600;box-shadow:0 8px 30px -8px rgba(255,107,107,.55),inset 0 1px 0 rgba(255,255,255,.25);transition:box-shadow .3s,transform .3s,filter .3s}
 .btn-cta:hover{box-shadow:0 10px 44px -6px rgba(255,112,191,.7),0 0 0 1px rgba(255,255,255,.12) inset;filter:saturate(1.1) brightness(1.04)}
 .btn-cta:active{transform:scale(.98)}
@@ -86,7 +99,7 @@ ul,ol{list-style:none}
 .nav-cta::after{content:"";position:absolute;inset:-5px -3px}/* 44px touch target, 34px pill */
 .nav.open .nav-cta{visibility:hidden}
 .nav-cta .short{display:none}
-html:not(.js) .burger,html:not(.js) .car-nav,html:not(.js) .langs{display:none !important}
+html:not(.js) .burger,html:not(.js) .car-nav,html:not(.js) .lang{display:none !important}
 .burger{display:none;width:44px;height:44px;margin-right:-10px;position:relative;border-radius:12px}
 .burger i{position:absolute;left:13px;right:13px;height:1.5px;background:#fff;border-radius:2px;transition:transform .3s,top .3s}
 .burger i:nth-child(1){top:18px}.burger i:nth-child(2){top:25px}
@@ -97,8 +110,11 @@ html:not(.js) .burger,html:not(.js) .car-nav,html:not(.js) .langs{display:none !
 .menu[hidden]{display:none}
 .menu-links{display:flex;flex-direction:column}
 .menu-links a{font-family:var(--disp);font-size:26px;font-weight:600;letter-spacing:-.03em;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)}
-.langs-lg{margin-top:22px;width:max-content}
-.langs-lg .lang-btn{font-size:14px;padding:10px 14px;letter-spacing:0;min-height:44px}
+.menu-langs{margin-top:24px}
+.menu-lang-h{font-family:var(--disp);font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--g2);margin-bottom:10px}
+.lang-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.lang-grid .lang-opt{min-height:44px;padding:10px 14px;border-radius:12px;font-size:15px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06)}
+.lang-grid .lang-opt[aria-current="true"]{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.16)}
 .menu-cta{margin-top:20px;width:100%;justify-content:center}
 
 /* ============================ BUTTONS & FORMS ============================ */
@@ -225,6 +241,8 @@ html:not(.js) #heroShot{display:none}
 .copyC{position:relative;z-index:3}
 .c-title{font-family:var(--disp);font-weight:700;font-size:clamp(36px,4.2vw,64px);line-height:1;letter-spacing:-.045em;margin-top:14px}
 .c-sub{margin-top:18px;color:var(--g1);font-size:17px;max-width:300px;line-height:1.45}
+html.cine .c-sub{max-width:255px} /* desktop cinema: keep clear of the exploded phone's top layer (long pl/de/it/es lines) */
+html.sl-i18n body{visibility:hidden} /* see the <head> script: / while switching from the static Ukrainian text */
 .leaders{display:none}
 .labels{position:relative;z-index:3;display:flex;flex-direction:column;gap:26px}
 .lab .n,.mc .n{display:block;font-family:var(--disp);font-size:12px;color:var(--g2);letter-spacing:.1em;margin-bottom:6px}
@@ -559,7 +577,7 @@ html.cine .tap-pin{position:sticky;top:0;height:100vh;height:100svh;overflow:hid
 @media (max-width:899px){
   :root{--navH:52px}
   .store-qr{display:none !important}
-  .nav-links,.nav .nav-right>.langs{display:none}
+  .nav-links,.nav .nav-right>.lang{display:none}
   .burger{display:block}
   .nav-cta{height:34px;padding:0 14px;font-size:13px}
   .nav-cta .full{display:none}.nav-cta .short{display:inline}

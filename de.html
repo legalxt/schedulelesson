@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="de" data-page-lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>
+  /* progressive-enhancement gate + language (runs before anything paints):
+     .js = scripts run; .cine = scroll cinema allowed (dropped for reduced motion and short landscape screens).
+     If the cinema is not ready within 3.5 s (slow network), switch to the static layout for good — main.js respects that. */
+  (function (d, w) {
+    var h = d.documentElement, c = h.classList;
+    c.add('js');
+    var mm = function (q) { try { return w.matchMedia(q).matches; } catch (e) { return false; } };
+    if (!mm('(prefers-reduced-motion: reduce)') && !mm('(max-height: 500px) and (orientation: landscape)')) c.add('cine');
+    setTimeout(function () { if (c.contains('cine') && !c.contains('cine-ready')) { c.remove('cine'); c.add('no-cine'); } }, 3500);
+    /* language: ?lang → language page (ru.html, en.html, pl.html …) → saved choice → browser language (people only:
+       the first supported one in navigator.languages, any other language → en) → the page's own language (uk on /).
+       Keep in sync with detectLang() in main.js */
+    var L = ['uk', 'ru', 'en', 'pl', 'de', 'fr', 'es', 'it'], ok = function (v) { return L.indexOf(v) > -1; }, page = h.getAttribute('data-page-lang'), l = null;
+    try { l = new URLSearchParams(location.search).get('lang'); } catch (e) {}
+    if (!ok(l) && ok(page) && page !== 'uk') l = page;
+    if (!ok(l)) { try { l = localStorage.getItem('sl_lang'); } catch (e) {} }
+    if (!ok(l) && !/bot|crawl|spider|slurp|preview|externalhit|embedly|lighthouse/i.test(navigator.userAgent || '')) {
+      var ns = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || ''];
+      for (var i = 0; i < ns.length && !ok(l); i++) l = String(ns[i] || '').toLowerCase().slice(0, 2);
+      if (!ok(l)) l = 'en';
+    }
+    if (!ok(l)) l = ok(page) ? page : 'uk';
+    w.SL_LANG = l;
+    /* / ships Ukrainian static text: if another language was chosen, keep the page hidden until main.js applies it
+       (applyLang removes .sl-i18n), so visitors never see a Ukrainian flash; 3.5 s fallback for slow or failed scripts */
+    if (l !== (ok(page) ? page : 'uk')) { c.add('sl-i18n'); setTimeout(function () { c.remove('sl-i18n'); }, 3500); }
+    /* App Store state (details in main.js, "App Store state"): ?live=1|0 QA override, else this session's cached lookup;
+       after release (prerender STORE_LIVE=1 → data-store="released") LIVE is static and only ?live=0 turns it off */
+    var lv = null, rel = h.getAttribute('data-store') === 'released';
+    try { lv = new URLSearchParams(location.search).get('live'); } catch (e) {}
+    if (lv !== '1' && lv !== '0' && !rel) { try { lv = (sessionStorage.getItem('sl_store') || '').charAt(0); } catch (e) {} }
+    if (lv === '1') c.add('sl-live'); else if (lv === '0') c.remove('sl-live');
+    var k = d.createElement('link'); k.rel = 'preload'; k.as = 'image'; k.href = 'assets/shots/' + l + '/1_schedule.jpg';
+    try { k.fetchPriority = 'high'; } catch (e) {}
+    d.head.appendChild(k);
+  })(document, window);
+</script>
+<title>Schedule Lesson – Stundenplan und Zahlungen für Nachhilfelehrer</title>
+<meta name="description" data-i18n-attr="content:meta.desc" content="Die iPhone-App für Nachhilfelehrer: Stundenplan, Schüler, Stundenpakete, Zahlungen, Stundenjournal und Elternberichte. Kostenlos für bis zu 3 Schüler.">
+<meta name="theme-color" content="#000000">
+<meta name="apple-itunes-app" content="app-id=6817674096">
+<meta name="google-site-verification" content="sRJw-p2yEyOD3RXDyfwi-et4WY0RaDiaGnr3Cn1wZDA">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="favicon.ico" sizes="32x32">
+<link rel="icon" type="image/png" href="assets/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Schedule Lesson">
+<meta property="og:title" data-i18n-attr="content:meta.title" content="Schedule Lesson – Stundenplan und Zahlungen für Nachhilfelehrer">
+<meta property="og:description" data-i18n-attr="content:meta.desc" content="Die iPhone-App für Nachhilfelehrer: Stundenplan, Schüler, Stundenpakete, Zahlungen, Stundenjournal und Elternberichte. Kostenlos für bis zu 3 Schüler.">
+<meta property="og:locale" data-i18n-attr="content:meta.locale" content="de_DE">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" data-i18n-attr="content:meta.title" content="Schedule Lesson – Stundenplan und Zahlungen für Nachhilfelehrer">
+<meta name="twitter:description" data-i18n-attr="content:meta.desc" content="Die iPhone-App für Nachhilfelehrer: Stundenplan, Schüler, Stundenpakete, Zahlungen, Stundenjournal und Elternberichte. Kostenlos für bis zu 3 Schüler.">
+<!--seo:start — generated by _build/prerender.mjs (canonical, hreflang, og:url/og:image, JSON-LD); edit the script, not this block-->
+<link rel="canonical" href="https://legalxt.github.io/schedulelesson/de.html">
+<link rel="alternate" hreflang="uk" href="https://legalxt.github.io/schedulelesson/">
+<link rel="alternate" hreflang="ru" href="https://legalxt.github.io/schedulelesson/ru.html">
+<link rel="alternate" hreflang="en" href="https://legalxt.github.io/schedulelesson/en.html">
+<link rel="alternate" hreflang="pl" href="https://legalxt.github.io/schedulelesson/pl.html">
+<link rel="alternate" hreflang="de" href="https://legalxt.github.io/schedulelesson/de.html">
+<link rel="alternate" hreflang="fr" href="https://legalxt.github.io/schedulelesson/fr.html">
+<link rel="alternate" hreflang="es" href="https://legalxt.github.io/schedulelesson/es.html">
+<link rel="alternate" hreflang="it" href="https://legalxt.github.io/schedulelesson/it.html">
+<link rel="alternate" hreflang="x-default" href="https://legalxt.github.io/schedulelesson/">
+<meta property="og:locale:alternate" content="uk_UA">
+<meta property="og:locale:alternate" content="ru_RU">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:locale:alternate" content="pl_PL">
+<meta property="og:locale:alternate" content="fr_FR">
+<meta property="og:locale:alternate" content="es_ES">
+<meta property="og:locale:alternate" content="it_IT">
+<meta property="og:url" content="https://legalxt.github.io/schedulelesson/de.html">
+<meta property="og:image" content="https://legalxt.github.io/schedulelesson/assets/og-de.jpg?v=2">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:image" content="https://legalxt.github.io/schedulelesson/assets/og-de.jpg?v=2">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Schedule Lesson","applicationCategory":"BusinessApplication","operatingSystem":"iOS 17 or later","description":"An iPhone app for private tutors: schedule, students, lesson packs and one-off lessons, payments and debts, a lesson journal, statistics, parent reports and payment reminders.","inLanguage":["uk","en","ru","pl","de","fr","es","it"],"image":"https://legalxt.github.io/schedulelesson/assets/icon.png","url":"https://legalxt.github.io/schedulelesson/de.html","offers":[{"@type":"Offer","name":"Free","price":"0","priceCurrency":"USD"},{"@type":"Offer","name":"Pro (monthly)","price":"6.99","priceCurrency":"USD"},{"@type":"Offer","name":"Pro (yearly)","price":"24.99","priceCurrency":"USD"}]}</script>
+<!--seo:end-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap&subset=cyrillic" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<a class="skip" href="#main" data-i18n="skip">Zum Inhalt springen</a>
+
+<!-- ================= NAV ================= -->
+<header class="nav" id="nav">
+  <div class="nav-in">
+    <a class="brand" href="#top" data-i18n-attr="aria-label:nav.home" aria-label="Schedule Lesson&nbsp;– nach oben">
+      <img src="assets/logo-64.png" alt="" width="28" height="28"><span>Schedule Lesson</span>
+    </a>
+    <nav class="nav-links" data-i18n-attr="aria-label:nav.aria" aria-label="Hauptnavigation">
+      <a href="#features" data-i18n="nav.features">Funktionen</a>
+      <a href="#pro" data-i18n="nav.pro">Pro</a>
+      <a href="#pricing" data-i18n="nav.pricing">Preise</a>
+      <a href="#faq" data-i18n="nav.faq">FAQ</a>
+    </nav>
+    <div class="nav-right">
+      <div class="lang" id="lang">
+        <button type="button" class="lang-btn" id="langBtn" aria-expanded="false" aria-controls="langPop"><svg class="lang-globe" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.4 2.5 3.6 5.5 3.6 9s-1.2 6.5-3.6 9c-2.4-2.5-3.6-5.5-3.6-9S9.6 5.5 12 3z"/></svg><span class="lang-code" aria-hidden="true" data-i18n="lang.code">DE</span><span class="sr-only" data-i18n="nav.lang.cur">Sprache der Website: Deutsch</span><svg class="lang-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></button>
+        <ul class="lang-pop" id="langPop" data-i18n-attr="aria-label:nav.lang" aria-label="Sprache der Website">
+          <li><a class="lang-opt" href="./" hreflang="uk" lang="uk" data-lang="uk">Українська</a></li>
+          <li><a class="lang-opt" href="ru.html" hreflang="ru" lang="ru" data-lang="ru">Русский</a></li>
+          <li><a class="lang-opt" href="en.html" hreflang="en" lang="en" data-lang="en">English</a></li>
+          <li><a class="lang-opt" href="pl.html" hreflang="pl" lang="pl" data-lang="pl">Polski</a></li>
+          <li><a class="lang-opt" href="de.html" hreflang="de" lang="de" data-lang="de" aria-current="true">Deutsch</a></li>
+          <li><a class="lang-opt" href="fr.html" hreflang="fr" lang="fr" data-lang="fr">Français</a></li>
+          <li><a class="lang-opt" href="es.html" hreflang="es" lang="es" data-lang="es">Español</a></li>
+          <li><a class="lang-opt" href="it.html" hreflang="it" lang="it" data-lang="it">Italiano</a></li>
+        </ul>
+      </div>
+      <a class="nav-cta btn-cta" href="#join" target="_self" data-cta><span class="full"><span class="st-soon" data-i18n="nav.soon">Bald im App Store</span><span class="st-live" data-i18n="nav.get">Laden</span></span><span class="short"><span class="st-soon" data-i18n="nav.soon.short">Demnächst</span><span class="st-live" data-i18n="nav.get.short">Laden</span></span></a>
+      <button type="button" class="burger" id="burger" aria-expanded="false" aria-controls="menu" data-i18n-attr="aria-label:nav.menu.open" aria-label="Menü öffnen"><i></i><i></i></button>
+    </div>
+  </div>
+  <div class="menu" id="menu" hidden>
+    <nav class="menu-links" data-i18n-attr="aria-label:nav.aria" aria-label="Hauptnavigation">
+      <a href="#features" data-i18n="nav.features">Funktionen</a>
+      <a href="#pro" data-i18n="nav.pro">Pro</a>
+      <a href="#pricing" data-i18n="nav.pricing">Preise</a>
+      <a href="#faq" data-i18n="nav.faq">FAQ</a>
+    </nav>
+    <div class="menu-langs">
+      <p class="menu-lang-h" id="menuLangH" data-i18n="nav.lang">Sprache der Website</p>
+      <ul class="lang-grid" aria-labelledby="menuLangH">
+        <li><a class="lang-opt" href="./" hreflang="uk" lang="uk" data-lang="uk">Українська</a></li>
+        <li><a class="lang-opt" href="ru.html" hreflang="ru" lang="ru" data-lang="ru">Русский</a></li>
+        <li><a class="lang-opt" href="en.html" hreflang="en" lang="en" data-lang="en">English</a></li>
+        <li><a class="lang-opt" href="pl.html" hreflang="pl" lang="pl" data-lang="pl">Polski</a></li>
+        <li><a class="lang-opt" href="de.html" hreflang="de" lang="de" data-lang="de" aria-current="true">Deutsch</a></li>
+        <li><a class="lang-opt" href="fr.html" hreflang="fr" lang="fr" data-lang="fr">Français</a></li>
+        <li><a class="lang-opt" href="es.html" hreflang="es" lang="es" data-lang="es">Español</a></li>
+        <li><a class="lang-opt" href="it.html" hreflang="it" lang="it" data-lang="it">Italiano</a></li>
+      </ul>
+    </div>
+    <a class="btn btn-cta menu-cta" href="#join" target="_self" data-cta><span class="st-soon" data-i18n="store.soon">Bald im App Store</span><span class="st-live" data-i18n="price.get">Laden im App Store</span></a>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ================= 1 · HERO CINEMA ================= -->
+<section class="hero" id="top" aria-labelledby="h1">
+  <div class="pin">
+    <div class="aurora" aria-hidden="true"><i class="a1"></i><i class="a2"></i><i class="a3"></i></div>
+
+    <div class="copyA">
+      <p class="eyebrow" data-i18n="hero.eyebrow">Schedule Lesson · für die Nachhilfe</p>
+      <p class="a-title" data-lines="hero.a"><span class="ln"><span>Deine nächste Stunde&nbsp;–</span></span> <span class="ln"><span><span class="dim-txt">immer im Blick.</span></span></span></p>
+      <p class="scroll-hint" aria-hidden="true"><i></i><span data-i18n="hero.scroll">Scrollen</span></p>
+    </div>
+
+    <div class="copyB">
+      <h1 class="b-title" id="h1" data-lines="hero.h1"><span class="ln"><span>Stundenplan,</span></span> <span class="ln"><span>Schüler und</span></span> <span class="ln"><span>Zahlungen&nbsp;–</span></span> <span class="ln"><span><span class="gt">in einer App.</span></span></span></h1>
+      <div class="b-side">
+        <p class="lead" data-i18n-html="hero.lead">Schedule Lesson <em>behält für dich den Überblick:</em> wer wann kommt, wie viele Stunden im Paket noch übrig sind, wer noch nicht bezahlt hat und <em>was du diesen Monat verdient hast.</em></p>
+        <div class="store">
+          <p class="store-soon st-soon"><i aria-hidden="true"></i><span data-i18n="store.soon">Bald im App Store</span></p>
+          <a class="store-badge st-live" href="https://apps.apple.com/app/id6817674096" target="_self" data-store-href><img src="assets/badges/app-store-de-de.svg" data-i18n-attr="src:store.badge,alt:store.badge.alt" alt="Laden im App Store" width="158" height="54" loading="lazy"></a>
+        </div>
+        <p class="fine" data-i18n-html="hero.fine">Für iPhone · iOS 17+ · <a href="https://legalxt.github.io/schedulelesson-legal/privacy.html#lang-en">Datenschutz</a></p>
+      </div>
+    </div>
+
+    <div class="cam hero-cam">
+      <div class="rig">
+        <div class="bezel"></div>
+        <div class="screen">
+          <div class="ly base"><img class="shot" id="heroShot" data-shot="1_schedule" width="600" height="1304" alt="Hauptbildschirm von Schedule Lesson: nächste Stunde, die Woche und die Stunden des Tages" data-alt="hero.phoneAlt" fetchpriority="high"><script>document.getElementById('heroShot').src = 'assets/shots/' + (window.SL_LANG || 'uk') + '/1_schedule.jpg';</script><noscript><img class="shot" data-shot="1_schedule" src="assets/shots/de/1_schedule.jpg" width="600" height="1304" alt="Hauptbildschirm von Schedule Lesson: nächste Stunde, die Woche und die Stunden des Tages" data-alt="hero.phoneAlt"></noscript></div>
+          <div class="island" role="img" data-i18n-attr="aria-label:la.aria" aria-label="Live-Aktivität: Stunde mit Emma, Physik, 60 Minuten">
+            <div class="isl-exp" aria-hidden="true">
+              <div class="ie-row">
+                <span class="av av-pink" data-i18n="la.av">EF</span>
+                <span class="ie-name"><b data-i18n="la.name">Stunde mit Emma</b><small data-i18n="la.sub">Physik · 60 Min.</small></span>
+                <span class="ie-time"><small data-i18n="la.in">in</small><b data-timer>42:51</b></span>
+              </div>
+              <div class="ie-row2">
+                <span class="ie-bar"><i></i></span>
+                <span class="ie-btn"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span data-i18n="la.btn">Abhaken</span></span>
+              </div>
+            </div>
+            <div class="isl-cmp" aria-hidden="true"><span class="av av-pink" data-i18n="la.av">EF</span><b data-timer>42:51</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pin-fade" aria-hidden="true"></div>
+  </div>
+</section>
+
+<!-- ================= 2 · PAIN STATEMENT ================= -->
+<section class="pain" id="pain" aria-labelledby="pain-eyebrow">
+  <div class="wrap">
+    <h2 class="eyebrow" id="pain-eyebrow" data-i18n="pain.eyebrow">Kommt dir das bekannt vor?</h2>
+    <div class="pain-lines">
+      <p class="pl" data-words="pain.q1">Moment&nbsp;– hat Mark den Oktober schon bezahlt?</p>
+      <p class="pl" data-words="pain.q2">Wie viele Stunden hat Sophie noch im Paket?</p>
+      <p class="pl" data-words="pain.q3">Wie viel habe ich diesen Monat eigentlich verdient?</p>
+      <p class="pl pl-a" data-words="pain.a">Schedule Lesson sagt es dir <span class="gt">in einer Sekunde.</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 3 · EXPLODED VIEW ================= -->
+<section class="layers" id="features" aria-labelledby="layers-title">
+  <div class="pin">
+    <div class="aurora aurora-l" aria-hidden="true"><i class="a1"></i><i class="a2"></i><i class="a3"></i></div>
+    <div class="copyC">
+      <p class="eyebrow" data-i18n="layers.eyebrow">Hauptbildschirm</p>
+      <h2 class="c-title" id="layers-title" data-lines="layers.title"><span class="ln"><span>Schicht</span></span> <span class="ln"><span>für Schicht.</span></span></h2>
+      <p class="c-sub" data-i18n="layers.sub">Alles, was du vor der Stunde wissen musst&nbsp;– auf einem Bildschirm.</p>
+    </div>
+
+    <div class="cam layers-cam" aria-hidden="true">
+      <div class="tilt">
+        <div class="rig">
+          <div class="bezel"></div>
+          <div class="screen">
+            <div class="ly base"><img class="shot" data-shot="1_schedule" src="assets/shots/de/1_schedule.jpg" width="600" height="1304" alt="" loading="lazy"><i class="dim"></i></div>
+            <div class="ly ly-tab" style="--x:22;--y:1138;--w:556;--h:108;--r:54;--z:30"><img class="shot" data-shot="1_schedule" src="assets/shots/de/1_schedule.jpg" alt="" loading="lazy"></div>
+            <div class="ly ly-list" style="--x:28;--y:566;--w:544;--h:520;--r:28;--z:70"><img class="shot" data-shot="1_schedule" src="assets/shots/de/1_schedule.jpg" alt="" loading="lazy"><i class="anc" data-a="3"></i></div>
+            <div class="ly ly-ring" style="--x:472;--y:578;--w:92;--h:92;--r:46;--z:190"><img class="shot" data-shot="1_schedule" src="assets/shots/de/1_schedule.jpg" alt="" loading="lazy"><i class="anc anc-r" data-a="2"></i></div>
+            <div class="ly ly-week" style="--x:24;--y:392;--w:552;--h:164;--r:24;--z:140"><img class="shot" data-shot="1_schedule" src="assets/shots/de/1_schedule.jpg" alt="" loading="lazy"><i class="anc" data-a="1"></i></div>
+            <div class="ly ly-next" style="--x:28;--y:204;--w:544;--h:178;--r:30;--z:220"><img class="shot" data-shot="1_schedule" src="assets/shots/de/1_schedule.jpg" alt="" loading="lazy"><i class="anc" data-a="0"></i></div>
+            <div class="ly ly-head" style="--x:0;--y:0;--w:600;--h:196;--r:0;--z:260"><img class="shot" data-shot="1_schedule" src="assets/shots/de/1_schedule.jpg" alt="" loading="lazy"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <svg class="leaders" aria-hidden="true"></svg>
+    <ol class="labels">
+      <li class="lab"><span class="n">01</span><b data-i18n="l1.t">Nächste Stunde</b><p data-i18n="l1.d">Wer, was und wann&nbsp;– mit Live-Countdown: „in&nbsp;42:51“.</p></li>
+      <li class="lab"><span class="n">02</span><b data-i18n="l2.t">Die Woche in einer Zeile</b><p data-i18n="l2.d">Einmal tippen&nbsp;– schon bist du beim richtigen Tag.</p></li>
+      <li class="lab"><span class="n">03</span><b data-i18n="l3.t">Stundenpaket 5/8</b><p data-i18n="l3.d">Wie viele Stunden noch übrig sind&nbsp;– ganz ohne Nachzählen.</p></li>
+      <li class="lab"><span class="n">04</span><b data-i18n="l4.t">Stunden des Tages</b><p data-i18n="l4.d">Uhrzeit, Schüler, Fach, Zahlungsart. Stunde gegeben? Mit einem Tippen abhaken.</p></li>
+    </ol>
+    <div class="mcap" aria-hidden="true">
+      <div class="mc-stack">
+        <div class="mc"><span class="n">01</span><b data-i18n="l1.t">Nächste Stunde</b><p data-i18n="l1.m">Wer, was und wann&nbsp;– mit Live-Countdown.</p></div>
+        <div class="mc"><span class="n">02</span><b data-i18n="l2.t">Die Woche in einer Zeile</b><p data-i18n="l2.m">Einmal tippen&nbsp;– schon bist du beim richtigen Tag.</p></div>
+        <div class="mc"><span class="n">03</span><b data-i18n="l3.t">Stundenpaket 5/8</b><p data-i18n="l3.m">Wie viele Stunden übrig sind&nbsp;– auf einen Blick.</p></div>
+        <div class="mc"><span class="n">04</span><b data-i18n="l4.t">Stunden des Tages</b><p data-i18n="l4.m">Stunde gegeben? Mit einem Tippen abhaken.</p></div>
+      </div>
+      <div class="mc-dots"><i></i><i></i><i></i><i></i></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 4 · SCREENS TOUR ================= -->
+<section class="screens" id="screens" aria-labelledby="screens-title">
+  <div class="wrap scr-head">
+    <div>
+      <p class="eyebrow" data-i18n="screens.eyebrow">Bildschirme</p>
+      <h2 class="sec-title" id="screens-title" data-i18n="screens.title">Schau genauer hin.</h2>
+      <p class="sec-sub" data-i18n="screens.sub">Sieben Bildschirme&nbsp;– vom Stundenplan bis zur Zahlungserinnerung. Die Screenshots zeigen Demodaten.</p>
+    </div>
+    <div class="car-nav">
+      <button type="button" class="car-btn" data-dir="-1" aria-controls="car" data-i18n-attr="aria-label:screens.prev" aria-label="Vorheriger Bildschirm"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <button type="button" class="car-btn" data-dir="1" aria-controls="car" data-i18n-attr="aria-label:screens.next" aria-label="Nächster Bildschirm"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+    </div>
+  </div>
+  <div class="car-region" role="region" aria-roledescription="carousel" data-i18n-attr="aria-label:screens.aria" aria-label="App-Bildschirme">
+  <ul class="car" id="car" tabindex="0">
+    <li class="car-item" role="group" aria-roledescription="slide" data-of="1"><div class="device"><img data-shot="1_schedule" src="assets/shots/de/1_schedule.jpg" width="600" height="1304" loading="lazy" draggable="false" data-alt-shot="1" alt="Schedule Lesson, Bildschirm „Stundenplan“: Woche, nächste Stunde und Abhaken"></div><h3 data-i18n="g.1.t">Stundenplan</h3><p data-i18n="g.1.d">Woche, nächste Stunde und Abhaken</p></li>
+    <li class="car-item" role="group" aria-roledescription="slide" data-of="2"><div class="device"><img data-shot="2_kids" src="assets/shots/de/2_kids.jpg" width="600" height="1304" loading="lazy" draggable="false" data-alt-shot="2" alt="Schedule Lesson, Bildschirm „Schüler“: Alle Schüler und ihre Fächer"></div><h3 data-i18n="g.2.t">Schüler</h3><p data-i18n="g.2.d">Alle Schüler und ihre Fächer</p></li>
+    <li class="car-item" role="group" aria-roledescription="slide" data-of="3"><div class="device"><img data-shot="3_kid" src="assets/shots/de/3_kid.jpg" width="600" height="1304" loading="lazy" draggable="false" data-alt-shot="3" alt="Schedule Lesson, Bildschirm „Schülerprofil“: Stundenpaket, Notizen, Journal"></div><h3 data-i18n="g.3.t">Schülerprofil</h3><p data-i18n="g.3.d">Stundenpaket, Notizen, Journal</p></li>
+    <li class="car-item" role="group" aria-roledescription="slide" data-of="4"><div class="device"><img data-shot="4_journal" src="assets/shots/de/4_journal.jpg" width="600" height="1304" loading="lazy" draggable="false" data-alt-shot="4" alt="Schedule Lesson, Bildschirm „Journal“: Notizen zu jeder Stunde"></div><h3 data-i18n="g.4.t">Journal</h3><p data-i18n="g.4.d">Notizen zu jeder Stunde</p></li>
+    <li class="car-item" role="group" aria-roledescription="slide" data-of="5"><div class="device"><img data-shot="5_stats" src="assets/shots/de/5_stats.jpg" width="600" height="1304" loading="lazy" draggable="false" data-alt-shot="5" alt="Schedule Lesson, Bildschirm „Statistik“: Einnahmen, Anwesenheit, Prognose"></div><h3 data-i18n="g.5.t">Statistik</h3><p data-i18n="g.5.d">Einnahmen, Anwesenheit, Prognose</p></li>
+    <li class="car-item" role="group" aria-roledescription="slide" data-of="6"><div class="device"><img data-shot="6_report" src="assets/shots/de/6_report.jpg" width="600" height="1304" loading="lazy" draggable="false" data-alt-shot="6" alt="Schedule Lesson, Bildschirm „Elternbericht“: Anwesenheit, Themen, Zahlung"></div><h3 data-i18n="g.6.t">Elternbericht</h3><p data-i18n="g.6.d">Anwesenheit, Themen, Zahlung</p></li>
+    <li class="car-item" role="group" aria-roledescription="slide" data-of="7"><div class="device"><img data-shot="7_reminder" src="assets/shots/de/7_reminder.jpg" width="600" height="1304" loading="lazy" draggable="false" data-alt-shot="7" alt="Schedule Lesson, Bildschirm „Zahlungserinnerung“: Offener Betrag des Monats und fertige Nachricht"></div><h3 data-i18n="g.7.t">Zahlungserinnerung</h3><p data-i18n="g.7.d">Offener Betrag des Monats und fertige Nachricht</p></li>
+  </ul>
+  <div class="car-prog" aria-hidden="true"><i></i></div>
+  </div>
+</section>
+
+<!-- ================= 5 · PRO BENTO ================= -->
+<section class="pro" id="pro" aria-labelledby="pro-title">
+  <div class="wrap">
+    <header class="pro-head">
+      <p class="eyebrow" data-i18n="pro.eyebrow">Schedule Lesson Pro</p>
+      <h2 class="sec-title" id="pro-title" data-i18n-html="pro.title">Wenn du mehr Schüler hast,<br><span class="dim-txt">als du dir merken&nbsp;kannst.</span></h2>
+      <p class="sec-sub" data-i18n="pro.sub">Die kostenlose Version reicht für bis zu drei Schüler. Pro hebt die Limits auf und bringt den Assistenten, Statistik, Berichte und alles, was auch außerhalb der App funktioniert.</p>
+    </header>
+
+    <div class="bento">
+      <article class="tile t-ai" id="tileAi">
+        <div class="tcopy"><h3 data-i18n="ai.t">KI-Assistent</h3><p data-i18n="ai.d">Offene Zahlungen, Planung, Stunden verschieben&nbsp;– per Text oder Sprache.</p></div>
+        <div class="sr-only"><p data-i18n="ai.q">Wer hat noch nicht bezahlt?</p><p data-i18n-html="ai.a">Mark Schneider&nbsp;– <b class="c-coral">120&nbsp;€</b> für September. Drei Stunden offen: 14., 16. und 18. September.</p><p data-i18n="ai.v">„Trag Mia am Dienstag eine Stunde ein“</p><p data-i18n="ai.ok">Erledigt&nbsp;– Mias Stunde steht am Dienstag.</p></div>
+        <div class="chat" aria-hidden="true">
+          <div class="msg me"><span class="tx" data-i18n="ai.q">Wer hat noch nicht bezahlt?</span></div>
+          <div class="msg ai"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="tx" data-i18n-html="ai.a">Mark Schneider&nbsp;– <b class="c-coral">120&nbsp;€</b> für September. Drei Stunden offen: 14., 16. und 18. September.</span></div>
+          <div class="msg me voice"><span class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="tx" data-i18n="ai.v">„Trag Mia am Dienstag eine Stunde ein“</span></div>
+          <div class="msg ai"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="tx"><span data-i18n="ai.ok">Erledigt&nbsp;– Mias Stunde steht am Dienstag.</span> <b class="c-mint" aria-hidden="true">✓</b></span></div>
+        </div>
+        <div class="ask-bar" aria-hidden="true"><span class="spark"></span><span class="ph" data-i18n="ai.ph">Schreib oder diktiere…</span><span class="mic"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></span></div>
+      </article>
+
+      <article class="tile t-lock" data-play="lock">
+        <div class="tcopy"><h3 data-i18n="lock.t">Stunde auf dem Sperrbildschirm</h3><p data-i18n="lock.d">Live-Timer in der Dynamic&nbsp;Island und Abhaken mit einem Tippen.</p></div>
+        <div class="lockui" aria-hidden="true">
+          <div class="lk-time">09:41</div>
+          <div class="lk-date" data-i18n="lock.date">Donnerstag, 1. Oktober</div>
+          <div class="la">
+            <div class="la-r1"><span class="av av-pink" data-i18n="la.av">EF</span>
+            <span class="la-name"><b data-i18n="la.name">Stunde mit Emma</b><small data-i18n="la.sub">Physik · 60 Min.</small></span>
+            <span class="la-time"><small data-i18n="la.in">in</small><b data-timer>42:51</b></span></div>
+            <div class="la-r2"><span class="la-bar"><i></i></span>
+            <span class="la-check"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span data-i18n="la.btn">Abhaken</span></span></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="tile t-stats" data-play="stats">
+        <div class="tcopy"><h3 data-i18n="stats.t">Statistik</h3><p data-i18n="stats.d">Einnahmen, Diagramme, Monatstrends und Einnahmenprognose.</p></div>
+        <div class="stats" aria-hidden="true">
+          <div class="ringbox">
+            <svg viewBox="0 0 120 120"><defs><linearGradient id="gPink" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF6B6B"/><stop offset="1" stop-color="#FF70BF"/></linearGradient></defs><circle cx="60" cy="60" r="50" class="trk"/><circle cx="60" cy="60" r="50" class="val" pathLength="100"/></svg>
+            <span class="ring-num"><span class="rn"><b data-count="81">81</b>%</span><small data-i18n="stats.att">Anwesenheit</small></span>
+          </div>
+          <div class="income"><small data-i18n="stats.inc">Einnahmen im Oktober</small><b data-money="stats.incv">1.625&nbsp;€</b></div>
+        </div>
+      </article>
+
+      <article class="tile t-widget" data-play="widget">
+        <div class="tcopy"><h3 data-i18n="widget.t">Widget „Mein Tag“</h3><p data-i18n="widget.d">Dein Stundenplan direkt auf dem Home-Bildschirm.</p></div>
+        <div class="widget" aria-hidden="true">
+          <div class="w-head"><span data-i18n="widget.head">Mein Tag</span><small data-i18n="widget.n">5 Stunden</small></div>
+          <div class="w-row"><i style="background:#30C9FF"></i><b data-i18n="p1.time">11:30</b><span data-i18n="p1.name">Lukas Weber</span></div>
+          <div class="w-row"><i style="background:#FF70BF"></i><b data-i18n="p2.time">13:00</b><span data-i18n="p2.name">Sophie Müller</span></div>
+          <div class="w-row"><i style="background:#A142FF"></i><b data-i18n="p3.time">15:30</b><span data-i18n="p3.name">Emma Fischer</span></div>
+        </div>
+      </article>
+
+      <article class="tile t-report" data-play="report">
+        <div class="tcopy"><h3 data-i18n="report.t">Elternberichte</h3><p data-i18n="report.d">Anwesenheit, durchgenommener Stoff, Zahlung und dein Kommentar&nbsp;– mit einem Tippen.</p></div>
+        <div class="report" aria-hidden="true">
+          <div class="rp-head"><b data-i18n="rp.head">Stundenbericht</b><small data-i18n="rp.sub">Sophie Müller · Mathe · September</small></div>
+          <div class="rp-lab" data-i18n="rp.att">Anwesenheit</div>
+          <div class="rp-big" data-i18n="rp.big">5 von 5 Stunden</div>
+          <div class="rp-days"><i>6</i><i>13</i><i>14</i><i>16</i><i>18</i></div>
+          <div class="rp-lab" data-i18n="rp.payl">Zahlung</div>
+          <div class="rp-pay" data-i18n="rp.pay">5 Stunden · 200&nbsp;€</div>
+        </div>
+      </article>
+
+      <article class="tile t-watch" data-play="watch">
+        <div class="tcopy"><h3 data-i18n="watch.t">Apple Watch</h3><p data-i18n="watch.d">Nächste Stunde und Abhaken&nbsp;– direkt am Handgelenk.</p></div>
+        <div class="watch" aria-hidden="true">
+          <span class="crown"></span>
+          <div class="w-screen">
+            <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" class="trk"/><circle cx="50" cy="50" r="42" class="val" pathLength="100"/></svg>
+            <div class="ws-in"><small data-i18n="watch.name">Emma F.</small><b data-timer>42:51</b><small class="c-pink" data-i18n="watch.subj">Physik</small></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="tile t-siri" data-play="siri">
+        <div class="tcopy"><h3 data-i18n="siri.t">Siri und Kurzbefehle</h3><p data-i18n="siri.d">Schedule Lesson in Siri und der Kurzbefehle-App.</p></div>
+        <div class="orb" aria-hidden="true"><i></i><i></i><i></i></div>
+      </article>
+
+      <article class="tile t-att" data-play="att">
+        <div class="tcopy"><h3 data-i18n="att.t">Anwesenheitsanalyse</h3><p data-i18n="att.d">Verpasste Stunden, entgangene Einnahmen und wie zuverlässig jeder Schüler ist.</p></div>
+        <div class="attui" aria-hidden="true">
+          <div class="att-head"><span data-i18n="att.rel">Zuverlässigkeit</span></div>
+          <div class="att-row"><span data-i18n="p1.name">Lukas Weber</span><span class="att-bar"><i style="--v:1"></i></span><b>100%</b></div>
+          <div class="att-row"><span data-i18n="p2.name">Sophie Müller</span><span class="att-bar"><i style="--v:.92"></i></span><b>92%</b></div>
+          <div class="att-row"><span data-i18n="p3.name">Emma Fischer</span><span class="att-bar"><i style="--v:.75"></i></span><b>75%</b></div>
+          <div class="att-kpis">
+            <div><small data-i18n="att.miss">Verpasst</small><b>5</b></div>
+            <div><small data-i18n="att.lost">Entgangene Einnahmen</small><b class="c-coral" data-i18n="att.lostv">190&nbsp;€</b></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="tile t-unl" data-play="unl">
+        <div class="tcopy"><h3 data-i18n="unl.t">Ohne Limits</h3><p data-i18n="unl.d">So viele Schüler und Stundenpakete, wie du brauchst.</p></div>
+        <div class="unlui" aria-hidden="true">
+          <svg class="inf" viewBox="0 0 200 90"><defs><linearGradient id="gNeon" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#A142FF"/><stop offset=".5" stop-color="#FF70BF"/><stop offset="1" stop-color="#30C9FF"/></linearGradient></defs><path d="M100 45 C 80 10, 30 10, 30 45 C 30 80, 80 80, 100 45 C 120 10, 170 10, 170 45 C 170 80, 120 80, 100 45 Z" pathLength="1"/></svg>
+          <div class="avs"><span class="av av-pink">SM</span><span class="av av-blue">MS</span><span class="av av-violet">EF</span><span class="av av-blue">LW</span><span class="av av-pink">MW</span><span class="av av-more">+</span></div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 6 · ONE TAP ================= -->
+<section class="tap" id="tap" aria-labelledby="tap-title">
+  <div class="tap-pin">
+    <div class="tap-wash" aria-hidden="true"></div>
+    <h2 class="tap-title" id="tap-title" data-lines="tap.title"><span class="ln"><span>Einmal tippen&nbsp;–</span></span> <span class="ln"><span><span class="gt-m">Stunde erledigt.</span></span></span></h2>
+    <div class="tap-row">
+      <div class="tap-left">
+        <div class="lesson" role="img" data-i18n-attr="aria-label:ls.aria" aria-label="Stunde um 13:00, Sophie Müller, Mathe, 8er-Stundenpaket: 6 von 8 erledigt">
+          <span class="ls-bar"></span>
+          <span class="ls-time"><b data-i18n="ls.time">13:00</b><small data-i18n="ls.dur">60 Min.</small></span>
+          <span class="av av-blue av-l" data-i18n="ls.av">SM</span>
+          <span class="ls-name"><b data-i18n="ls.name">Sophie Müller</b><small><span data-i18n="ls.subj">Mathe</span><em class="pill"> · <span data-i18n="ls.pack">8er-Stundenpaket</span></em></small></span>
+          <span class="ls-ring"><svg viewBox="0 0 56 56"><circle cx="28" cy="28" r="23" class="trk"/><circle cx="28" cy="28" r="23" class="val" id="lsRing" pathLength="8"/></svg><b id="lsNum">6/8</b></span>
+          <span class="ls-btn" id="lsBtn"><i class="ripple"></i><svg viewBox="0 0 24 24"><path id="lsTick" d="M5 12.5l4.5 4.5L19 7.5" pathLength="1"/></svg></span>
+          <span class="ls-done" id="lsDone" data-i18n="ls.done">Erledigt</span>
+        </div>
+        <p class="tap-cap" id="tapCap"><span data-i18n-html="tap.cap">Das Stundenpaket zählt selbst mit: aus <b>5 von 8</b> wird <b class="c-mint">6 von 8</b>.</span><br><span class="tap-sub" data-i18n="tap.sub">Keine Tabellen, keine Notizen am Heftrand.</span></p>
+      </div>
+      <div class="bigcheck" aria-hidden="true">
+        <svg viewBox="0 0 200 200">
+          <defs><linearGradient id="gMint" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5CFFB3"/><stop offset=".6" stop-color="#30C9FF"/><stop offset="1" stop-color="#A142FF"/></linearGradient></defs>
+          <circle cx="100" cy="100" r="92" class="bc-trk"/>
+          <circle cx="100" cy="100" r="92" class="bc-ring" pathLength="1" transform="rotate(-90 100 100)"/>
+          <path class="bc-tick" d="M60 103 L88 131 L142 73" pathLength="1"/>
+        </svg>
+        <i class="bc-glow"></i>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 7 · PRICING ================= -->
+<section class="pricing" id="pricing" aria-labelledby="price-title">
+  <div class="wrap">
+    <header class="sec-head center" data-reveal>
+      <p class="eyebrow" data-i18n="price.eyebrow">Preise</p>
+      <h2 class="sec-title" id="price-title" data-i18n-html="price.title">Kostenlos starten.<br><span class="dim-txt">Pro, wenn du&nbsp;mehr willst.</span></h2>
+    </header>
+    <div class="plans">
+      <article class="plan plan-free" data-reveal>
+        <h3 class="plan-name" data-i18n="free.name">Free</h3>
+        <p class="plan-price"><b data-i18n="free.price">Kostenlos</b></p>
+        <p class="plan-sub" data-i18n="free.sub">Ohne Zeitlimit</p>
+        <ul class="checks">
+          <li data-i18n="free.f1">Bis zu 3 Schüler</li>
+          <li data-i18n="free.f2">1 Vorlage für Stundenpakete</li>
+          <li data-i18n="free.f3">Stundenplan mit Abhaken per Tippen</li>
+          <li data-i18n="free.f4">Stundenjournal</li>
+        </ul>
+        <a class="btn btn-ghost st-live" href="https://apps.apple.com/app/id6817674096" target="_self" data-store-href data-i18n="price.get">Laden im App Store</a>
+        <span class="btn btn-soon st-soon" data-i18n="store.soon">Bald im App Store</span>
+      </article>
+      <article class="plan plan-pro" data-reveal>
+        <div class="plan-top"><h3 class="plan-name"><span class="gt" data-i18n="pro.name">Pro</span></h3><span class="plan-badge" data-i18n="pro.badge">Alles ohne Limits</span></div>
+        <div class="plan-prices">
+          <p class="plan-price"><b data-i18n="pro.m">6,99&nbsp;$</b><span data-i18n="pro.per.m">pro Monat</span></p>
+          <span class="plan-or" data-i18n="pro.or">oder</span>
+          <p class="plan-price"><b data-i18n="pro.y">24,99&nbsp;$</b><span data-i18n="pro.per.y">pro Jahr</span></p>
+        </div>
+        <p class="plan-trial" data-i18n="pro.trial">7 Tage gratis im Jahresabo</p>
+        <ul class="checks checks-pro">
+          <li data-i18n="pro.f1">KI-Assistent: offene Zahlungen, Planung und Verschieben von Stunden&nbsp;– per Text oder Sprache</li>
+          <li data-i18n="pro.f2">Unbegrenzt viele Schüler und Stundenpakete</li>
+          <li data-i18n="pro.f3">Vollständige Statistik: Einnahmen, Diagramme, Monatstrends, Einnahmenprognose</li>
+          <li data-i18n="pro.f4">Elternberichte: Anwesenheit, durchgenommener Stoff, Zahlung und dein Kommentar</li>
+          <li data-i18n="pro.f5">Anwesenheitsanalyse: verpasste Stunden, entgangene Einnahmen, Zuverlässigkeit</li>
+          <li data-i18n="pro.f6">Widget „Mein Tag“ auf dem Home-Bildschirm</li>
+          <li data-i18n="pro.f7">Stunde auf dem Sperrbildschirm: Live-Timer in der Dynamic&nbsp;Island</li>
+          <li data-i18n="pro.f8">Siri und Kurzbefehle</li>
+          <li data-i18n="pro.f9">Apple Watch: nächste Stunde und Abhaken am Handgelenk</li>
+        </ul>
+        <a class="btn btn-cta st-live" href="https://apps.apple.com/app/id6817674096" target="_self" data-store-href data-i18n="price.get">Laden im App Store</a>
+        <span class="btn btn-soon st-soon" data-i18n="store.soon">Bald im App Store</span>
+      </article>
+    </div>
+    <div class="price-notes" data-reveal>
+      <p data-i18n="price.note1">Der App Store zeigt die Preise in deiner Landeswährung an.</p>
+      <p data-i18n="price.note2">Jederzeit kündbar: iPhone-Einstellungen&nbsp;→ dein Name&nbsp;→ Abonnements.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 8 · FAQ ================= -->
+<section class="faq" id="faq" aria-labelledby="faq-title">
+  <div class="wrap faq-wrap">
+    <header class="sec-head" data-reveal>
+      <p class="eyebrow" data-i18n="faq.eyebrow">FAQ</p>
+      <h2 class="sec-title" id="faq-title" data-i18n="faq.title">Häufige Fragen.</h2>
+    </header>
+    <div class="faq-list">
+      <details class="qa"><summary><h3 data-i18n="faq.1.q">Wo bekomme ich Schedule Lesson?</h3><i aria-hidden="true"></i></summary><div class="qa-a"><p class="st-soon" data-i18n-html="faq.1.a">Bald im App Store&nbsp;– für iPhone mit iOS 17 oder neuer. Sobald die App erscheint, führen dich die Buttons auf dieser Seite direkt dorthin.</p><p class="st-live" data-i18n-html="faq.1.a.live">Im App Store für iPhone mit iOS 17 oder neuer&nbsp;– such einfach nach „Schedule Lesson“. Die Verfügbarkeit hängt vom Land oder der Region deines App Store ab.</p></div></details>
+      <details class="qa"><summary><h3 data-i18n="faq.2.q">Gibt es eine Android-Version?</h3><i aria-hidden="true"></i></summary><div class="qa-a"><p data-i18n-html="faq.2.a">Vorerst gibt es die App nur für iPhone.</p></div></details>
+      <details class="qa"><summary><h3 data-i18n="faq.3.q">Wo werden meine Daten gespeichert?</h3><i aria-hidden="true"></i></summary><div class="qa-a"><p data-i18n-html="faq.3.a">In deinem eigenen Cloud-Konto&nbsp;– mit Synchronisierung. Neues iPhone oder Neuinstallation: einfach anmelden, und alles ist wieder da. Deine Daten siehst nur du. Anmeldung per E-Mail, Apple oder Google.</p></div></details>
+      <details class="qa"><summary><h3 data-i18n="faq.4.q">In welchen Sprachen gibt es die App?</h3><i aria-hidden="true"></i></summary><div class="qa-a"><p data-i18n-html="faq.4.a">Auf Deutsch, Englisch, Ukrainisch, Russisch, Polnisch, Französisch, Spanisch und Italienisch.</p></div></details>
+      <details class="qa"><summary><h3 data-i18n="faq.5.q">Ich habe 2–3 Schüler. Muss ich bezahlen?</h3><i aria-hidden="true"></i></summary><div class="qa-a"><p data-i18n-html="faq.5.a">Nein. Die kostenlose Version umfasst bis zu 3 Schüler, 1 Vorlage für Stundenpakete, den Stundenplan mit Abhaken per Tippen und das Stundenjournal&nbsp;– ohne Zeitlimit.</p></div></details>
+      <details class="qa"><summary><h3 data-i18n="faq.6.q">Wie kündige ich Pro?</h3><i aria-hidden="true"></i></summary><div class="qa-a"><p data-i18n-html="faq.6.a">Jederzeit: iPhone-Einstellungen&nbsp;→ dein Name&nbsp;→ Abonnements. Pro kostet 6,99&nbsp;$ pro Monat oder 24,99&nbsp;$ pro Jahr (im Jahresabo 7 Tage gratis); der App Store zeigt den Preis in deiner Währung.</p></div></details>
+      <details class="qa"><summary><h3 data-i18n="faq.7.q">Welches iPhone brauche ich?</h3><i aria-hidden="true"></i></summary><div class="qa-a"><p data-i18n-html="faq.7.a">Jedes iPhone mit iOS 17 oder neuer.</p></div></details>
+      <details class="qa"><summary><h3 data-i18n="faq.8.q">Wie erreiche ich euch?</h3><i aria-hidden="true"></i></summary><div class="qa-a"><p data-i18n-html="faq.8.a">Schreib uns an <a href="mailto:supportschedulelesson@gmail.com">supportschedulelesson@gmail.com</a>&nbsp;– wir melden uns.</p></div></details>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 9 · FINAL CTA ================= -->
+<section class="join" id="join" aria-labelledby="join-title">
+  <div class="aurora aurora-j" aria-hidden="true"><i class="a1"></i><i class="a2"></i><i class="a3"></i></div>
+  <div class="join-in" data-reveal>
+    <img class="join-icon" src="assets/icon.png" width="112" height="112" alt="App-Symbol von Schedule Lesson" data-i18n-attr="alt:icon.alt" loading="lazy">
+    <h2 class="join-title" id="join-title" data-i18n="final.title">Schedule Lesson</h2>
+    <p class="join-sub"><span class="st-soon" data-i18n-html="final.sub"><span class="gt">Bald im App Store.</span></span><span class="st-live" data-i18n-html="final.sub.live"><span class="gt">Jetzt im App Store.</span></span></p>
+    <div class="store store-final">
+      <p class="store-soon st-soon"><i aria-hidden="true"></i><span data-i18n="store.note">Für iPhone · iOS 17+</span></p>
+      <a class="store-badge st-live" href="https://apps.apple.com/app/id6817674096" target="_self" data-store-href><img src="assets/badges/app-store-de-de.svg" data-i18n-attr="src:store.badge,alt:store.badge.alt" alt="Laden im App Store" width="158" height="54" loading="lazy"></a>
+      <figure class="store-qr st-live"><img src="assets/qr-appstore.svg" data-i18n-attr="alt:store.qr.alt" alt="QR-Code: Schedule Lesson im App Store" width="92" height="92" loading="lazy"><figcaption data-i18n="store.qr">Mit der iPhone-Kamera scannen</figcaption></figure>
+    </div>
+    <p class="store-note st-live" data-i18n="store.note">Für iPhone · iOS 17+</p>
+    <ul class="facts">
+      <li data-i18n="fact.1">Deutsch · Українська · Русский · English · Polski · Français · Español · Italiano</li>
+      <li data-i18n="fact.2">Deine Daten&nbsp;– in deinem eigenen Cloud-Konto</li>
+      <li data-i18n="fact.3">Anmeldung per E-Mail, Apple oder Google</li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <p class="foot-brand"><img src="assets/logo-64.png" alt="" width="22" height="22" loading="lazy"><span>© 2026 Schedule Lesson</span><span class="foot-tag" data-i18n="foot.tag">Die App für Nachhilfe-Profis</span></p>
+    <nav class="foot-links" data-i18n-attr="aria-label:foot.aria" aria-label="Rechtliches und Support">
+      <a href="https://legalxt.github.io/schedulelesson-legal/privacy.html#lang-en" data-i18n="foot.privacy" data-i18n-attr="href:link.privacy">Datenschutz</a>
+      <a href="https://legalxt.github.io/schedulelesson-legal/terms.html#lang-en" data-i18n="foot.terms" data-i18n-attr="href:link.terms">Nutzungsbedingungen</a>
+      <a href="https://legalxt.github.io/schedulelesson-legal/support.html#lang-en" data-i18n="foot.support" data-i18n-attr="href:link.support">Support</a>
+      <a href="mailto:supportschedulelesson@gmail.com">supportschedulelesson@gmail.com</a>
+    </nav>
+  </div>
+</footer>
+
+<!-- own scripts first: language, App Store state and the static page never wait for the animation libraries -->
+<script src="js/i18n.js" defer></script>
+<script src="js/main.js" defer></script>
+<script src="js/vendor/gsap.min.js" defer></script>
+<script src="js/vendor/ScrollTrigger.min.js" defer></script>
+<script src="js/vendor/lenis.min.js" defer></script>
+</body>
+</html>

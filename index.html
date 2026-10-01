@@ -13,17 +13,23 @@
     var mm = function (q) { try { return w.matchMedia(q).matches; } catch (e) { return false; } };
     if (!mm('(prefers-reduced-motion: reduce)') && !mm('(max-height: 500px) and (orientation: landscape)')) c.add('cine');
     setTimeout(function () { if (c.contains('cine') && !c.contains('cine-ready')) { c.remove('cine'); c.add('no-cine'); } }, 3500);
-    /* language: ?lang → language page (ru.html / en.html) → saved choice → browser language (people only) → uk */
-    var L = ['uk', 'ru', 'en'], ok = function (v) { return L.indexOf(v) > -1; }, page = h.getAttribute('data-page-lang'), l = null;
+    /* language: ?lang → language page (ru.html, en.html, pl.html …) → saved choice → browser language (people only:
+       the first supported one in navigator.languages, any other language → en) → the page's own language (uk on /).
+       Keep in sync with detectLang() in main.js */
+    var L = ['uk', 'ru', 'en', 'pl', 'de', 'fr', 'es', 'it'], ok = function (v) { return L.indexOf(v) > -1; }, page = h.getAttribute('data-page-lang'), l = null;
     try { l = new URLSearchParams(location.search).get('lang'); } catch (e) {}
     if (!ok(l) && ok(page) && page !== 'uk') l = page;
     if (!ok(l)) { try { l = localStorage.getItem('sl_lang'); } catch (e) {} }
     if (!ok(l) && !/bot|crawl|spider|slurp|preview|externalhit|embedly|lighthouse/i.test(navigator.userAgent || '')) {
-      var n = ((navigator.languages && navigator.languages[0]) || navigator.language || '').toLowerCase();
-      l = n.indexOf('ru') === 0 ? 'ru' : n.indexOf('en') === 0 ? 'en' : null;
+      var ns = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || ''];
+      for (var i = 0; i < ns.length && !ok(l); i++) l = String(ns[i] || '').toLowerCase().slice(0, 2);
+      if (!ok(l)) l = 'en';
     }
     if (!ok(l)) l = ok(page) ? page : 'uk';
     w.SL_LANG = l;
+    /* / ships Ukrainian static text: if another language was chosen, keep the page hidden until main.js applies it
+       (applyLang removes .sl-i18n), so visitors never see a Ukrainian flash; 3.5 s fallback for slow or failed scripts */
+    if (l !== (ok(page) ? page : 'uk')) { c.add('sl-i18n'); setTimeout(function () { c.remove('sl-i18n'); }, 3500); }
     /* App Store state (details in main.js, "App Store state"): ?live=1|0 QA override, else this session's cached lookup;
        after release (prerender STORE_LIVE=1 → data-store="released") LIVE is static and only ?live=0 turns it off */
     var lv = null, rel = h.getAttribute('data-store') === 'released';
@@ -57,15 +63,25 @@
 <link rel="alternate" hreflang="uk" href="https://legalxt.github.io/schedulelesson/">
 <link rel="alternate" hreflang="ru" href="https://legalxt.github.io/schedulelesson/ru.html">
 <link rel="alternate" hreflang="en" href="https://legalxt.github.io/schedulelesson/en.html">
+<link rel="alternate" hreflang="pl" href="https://legalxt.github.io/schedulelesson/pl.html">
+<link rel="alternate" hreflang="de" href="https://legalxt.github.io/schedulelesson/de.html">
+<link rel="alternate" hreflang="fr" href="https://legalxt.github.io/schedulelesson/fr.html">
+<link rel="alternate" hreflang="es" href="https://legalxt.github.io/schedulelesson/es.html">
+<link rel="alternate" hreflang="it" href="https://legalxt.github.io/schedulelesson/it.html">
 <link rel="alternate" hreflang="x-default" href="https://legalxt.github.io/schedulelesson/">
 <meta property="og:locale:alternate" content="ru_RU">
 <meta property="og:locale:alternate" content="en_US">
+<meta property="og:locale:alternate" content="pl_PL">
+<meta property="og:locale:alternate" content="de_DE">
+<meta property="og:locale:alternate" content="fr_FR">
+<meta property="og:locale:alternate" content="es_ES">
+<meta property="og:locale:alternate" content="it_IT">
 <meta property="og:url" content="https://legalxt.github.io/schedulelesson/">
 <meta property="og:image" content="https://legalxt.github.io/schedulelesson/assets/og-uk.jpg?v=2">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:image" content="https://legalxt.github.io/schedulelesson/assets/og-uk.jpg?v=2">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Schedule Lesson","applicationCategory":"BusinessApplication","operatingSystem":"iOS 17 or later","description":"An iPhone app for private tutors: schedule, students, lesson packs and one-off lessons, payments and debts, a lesson journal, statistics, parent reports and payment reminders.","inLanguage":["uk","en","ru"],"image":"https://legalxt.github.io/schedulelesson/assets/icon.png","url":"https://legalxt.github.io/schedulelesson/","offers":[{"@type":"Offer","name":"Free","price":"0","priceCurrency":"USD"},{"@type":"Offer","name":"Pro (monthly)","price":"6.99","priceCurrency":"USD"},{"@type":"Offer","name":"Pro (yearly)","price":"24.99","priceCurrency":"USD"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Schedule Lesson","applicationCategory":"BusinessApplication","operatingSystem":"iOS 17 or later","description":"An iPhone app for private tutors: schedule, students, lesson packs and one-off lessons, payments and debts, a lesson journal, statistics, parent reports and payment reminders.","inLanguage":["uk","en","ru","pl","de","fr","es","it"],"image":"https://legalxt.github.io/schedulelesson/assets/icon.png","url":"https://legalxt.github.io/schedulelesson/","offers":[{"@type":"Offer","name":"Free","price":"0","priceCurrency":"USD"},{"@type":"Offer","name":"Pro (monthly)","price":"6.99","priceCurrency":"USD"},{"@type":"Offer","name":"Pro (yearly)","price":"24.99","priceCurrency":"USD"}]}</script>
 <!--seo:end-->
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -89,10 +105,18 @@
       <a href="#faq" data-i18n="nav.faq">Питання</a>
     </nav>
     <div class="nav-right">
-      <div class="langs" role="group" data-i18n-attr="aria-label:nav.lang" aria-label="Мова сайту">
-        <button type="button" class="lang-btn" data-lang="uk" lang="uk" aria-pressed="true" aria-label="UA — Українська">UA</button>
-        <button type="button" class="lang-btn" data-lang="ru" lang="ru" aria-pressed="false" aria-label="RU — Русский">RU</button>
-        <button type="button" class="lang-btn" data-lang="en" lang="en" aria-pressed="false" aria-label="EN — English">EN</button>
+      <div class="lang" id="lang">
+        <button type="button" class="lang-btn" id="langBtn" aria-expanded="false" aria-controls="langPop"><svg class="lang-globe" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.4 2.5 3.6 5.5 3.6 9s-1.2 6.5-3.6 9c-2.4-2.5-3.6-5.5-3.6-9S9.6 5.5 12 3z"/></svg><span class="lang-code" aria-hidden="true" data-i18n="lang.code">UA</span><span class="sr-only" data-i18n="nav.lang.cur">Мова сайту: Українська</span><svg class="lang-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></button>
+        <ul class="lang-pop" id="langPop" data-i18n-attr="aria-label:nav.lang" aria-label="Мова сайту">
+          <li><a class="lang-opt" href="./" hreflang="uk" lang="uk" data-lang="uk" aria-current="true">Українська</a></li>
+          <li><a class="lang-opt" href="ru.html" hreflang="ru" lang="ru" data-lang="ru">Русский</a></li>
+          <li><a class="lang-opt" href="en.html" hreflang="en" lang="en" data-lang="en">English</a></li>
+          <li><a class="lang-opt" href="pl.html" hreflang="pl" lang="pl" data-lang="pl">Polski</a></li>
+          <li><a class="lang-opt" href="de.html" hreflang="de" lang="de" data-lang="de">Deutsch</a></li>
+          <li><a class="lang-opt" href="fr.html" hreflang="fr" lang="fr" data-lang="fr">Français</a></li>
+          <li><a class="lang-opt" href="es.html" hreflang="es" lang="es" data-lang="es">Español</a></li>
+          <li><a class="lang-opt" href="it.html" hreflang="it" lang="it" data-lang="it">Italiano</a></li>
+        </ul>
       </div>
       <a class="nav-cta btn-cta" href="#join" target="_self" data-cta><span class="full"><span class="st-soon" data-i18n="nav.soon">Скоро в&nbsp;App Store</span><span class="st-live" data-i18n="nav.get">Завантажити</span></span><span class="short"><span class="st-soon" data-i18n="nav.soon.short">Скоро</span><span class="st-live" data-i18n="nav.get.short">Завантажити</span></span></a>
       <button type="button" class="burger" id="burger" aria-expanded="false" aria-controls="menu" data-i18n-attr="aria-label:nav.menu.open" aria-label="Відкрити меню"><i></i><i></i></button>
@@ -105,10 +129,18 @@
       <a href="#pricing" data-i18n="nav.pricing">Ціни</a>
       <a href="#faq" data-i18n="nav.faq">Питання</a>
     </nav>
-    <div class="langs langs-lg" role="group" data-i18n-attr="aria-label:nav.lang" aria-label="Мова сайту">
-      <button type="button" class="lang-btn" data-lang="uk" lang="uk" aria-pressed="true">Українська</button>
-      <button type="button" class="lang-btn" data-lang="ru" lang="ru" aria-pressed="false">Русский</button>
-      <button type="button" class="lang-btn" data-lang="en" lang="en" aria-pressed="false">English</button>
+    <div class="menu-langs">
+      <p class="menu-lang-h" id="menuLangH" data-i18n="nav.lang">Мова сайту</p>
+      <ul class="lang-grid" aria-labelledby="menuLangH">
+        <li><a class="lang-opt" href="./" hreflang="uk" lang="uk" data-lang="uk" aria-current="true">Українська</a></li>
+        <li><a class="lang-opt" href="ru.html" hreflang="ru" lang="ru" data-lang="ru">Русский</a></li>
+        <li><a class="lang-opt" href="en.html" hreflang="en" lang="en" data-lang="en">English</a></li>
+        <li><a class="lang-opt" href="pl.html" hreflang="pl" lang="pl" data-lang="pl">Polski</a></li>
+        <li><a class="lang-opt" href="de.html" hreflang="de" lang="de" data-lang="de">Deutsch</a></li>
+        <li><a class="lang-opt" href="fr.html" hreflang="fr" lang="fr" data-lang="fr">Français</a></li>
+        <li><a class="lang-opt" href="es.html" hreflang="es" lang="es" data-lang="es">Español</a></li>
+        <li><a class="lang-opt" href="it.html" hreflang="it" lang="it" data-lang="it">Italiano</a></li>
+      </ul>
     </div>
     <a class="btn btn-cta menu-cta" href="#join" target="_self" data-cta><span class="st-soon" data-i18n="store.soon">Скоро в&nbsp;App Store</span><span class="st-live" data-i18n="price.get">Завантажити в&nbsp;App Store</span></a>
   </div>
@@ -130,7 +162,7 @@
     <div class="copyB">
       <h1 class="b-title" id="h1" data-lines="hero.h1"><span class="ln"><span>Розклад, учні</span></span> <span class="ln"><span>та оплати&nbsp;—</span></span> <span class="ln"><span><span class="gt">в&nbsp;одному</span></span></span> <span class="ln"><span><span class="gt">застосунку.</span></span></span></h1>
       <div class="b-side">
-        <p class="lead" data-i18n-html="hero.lead">Schedule Lesson <em>веде облік за вас:</em> хто коли приходить, скільки занять лишилося в&nbsp;абонементі, хто ще не заплатив і <em>скільки ви заробили цього місяця.</em></p>
+        <p class="lead" data-i18n-html="hero.lead">Schedule Lesson <em>веде облік за вас:</em> хто коли приходить, скільки занять лишилося в&nbsp;абонементі, хто ще не заплатив і&nbsp;<em>скільки ви заробили цього місяця.</em></p>
         <div class="store">
           <p class="store-soon st-soon"><i aria-hidden="true"></i><span data-i18n="store.soon">Скоро в&nbsp;App Store</span></p>
           <a class="store-badge st-live" href="https://apps.apple.com/app/id6817674096" target="_self" data-store-href><img src="assets/badges/app-store-uk-ua.svg" data-i18n-attr="src:store.badge,alt:store.badge.alt" alt="Завантажити в&nbsp;App Store" width="158" height="54" loading="lazy"></a>
@@ -143,7 +175,7 @@
       <div class="rig">
         <div class="bezel"></div>
         <div class="screen">
-          <div class="ly base"><img class="shot" id="heroShot" data-shot="1_schedule" width="600" height="1304" alt="Головний екран Schedule Lesson: наступний урок, тиждень і уроки дня" data-alt="hero.phoneAlt" fetchpriority="high"><script>document.getElementById('heroShot').src = 'assets/shots/' + (window.SL_LANG || 'uk') + '/1_schedule.jpg';</script><noscript><img class="shot" data-shot="1_schedule" src="assets/shots/uk/1_schedule.jpg" width="600" height="1304" alt="Головний екран Schedule Lesson: наступний урок, тиждень і уроки дня" data-alt="hero.phoneAlt"></noscript></div>
+          <div class="ly base"><img class="shot" id="heroShot" data-shot="1_schedule" width="600" height="1304" alt="Головний екран Schedule Lesson: наступний урок, тиждень і&nbsp;уроки дня" data-alt="hero.phoneAlt" fetchpriority="high"><script>document.getElementById('heroShot').src = 'assets/shots/' + (window.SL_LANG || 'uk') + '/1_schedule.jpg';</script><noscript><img class="shot" data-shot="1_schedule" src="assets/shots/uk/1_schedule.jpg" width="600" height="1304" alt="Головний екран Schedule Lesson: наступний урок, тиждень і&nbsp;уроки дня" data-alt="hero.phoneAlt"></noscript></div>
           <div class="island" role="img" data-i18n-attr="aria-label:la.aria" aria-label="Жива активність: урок з&nbsp;Алісою, математика, 60 хвилин">
             <div class="isl-exp" aria-hidden="true">
               <div class="ie-row">
@@ -207,7 +239,7 @@
 
     <svg class="leaders" aria-hidden="true"></svg>
     <ol class="labels">
-      <li class="lab"><span class="n">01</span><b data-i18n="l1.t">Наступний урок</b><p data-i18n="l1.d">Хто, що й&nbsp;коли&nbsp;— з&nbsp;живим відліком: «через 42:51».</p></li>
+      <li class="lab"><span class="n">01</span><b data-i18n="l1.t">Наступний урок</b><p data-i18n="l1.d">Хто, що й&nbsp;коли&nbsp;— з&nbsp;живим відліком: «через&nbsp;42:51».</p></li>
       <li class="lab"><span class="n">02</span><b data-i18n="l2.t">Тиждень одним рядком</b><p data-i18n="l2.d">Один дотик&nbsp;— і&nbsp;відкрито потрібний день.</p></li>
       <li class="lab"><span class="n">03</span><b data-i18n="l3.t">Абонемент 5/8</b><p data-i18n="l3.d">Скільки занять лишилося&nbsp;— видно без жодних підрахунків.</p></li>
       <li class="lab"><span class="n">04</span><b data-i18n="l4.t">Уроки дня</b><p data-i18n="l4.d">Час, учень, предмет, тип оплати. Провели&nbsp;— відмітили одним дотиком.</p></li>
@@ -239,13 +271,13 @@
   </div>
   <div class="car-region" role="region" aria-roledescription="carousel" data-i18n-attr="aria-label:screens.aria" aria-label="Екрани застосунку">
   <ul class="car" id="car" tabindex="0">
-    <li class="car-item" role="group" aria-roledescription="slide" data-of="1"><div class="device"><img data-shot="1_schedule" src="assets/shots/uk/1_schedule.jpg" width="600" height="1304" loading="lazy" draggable="false" data-alt-shot="1" alt="Екран Schedule Lesson «Розклад»: Тиждень, наступний урок і відмітки"></div><h3 data-i18n="g.1.t">Розклад</h3><p data-i18n="g.1.d">Тиждень, наступний урок і&nbsp;відмітки</p></li>
+    <li class="car-item" role="group" aria-roledescription="slide" data-of="1"><div class="device"><img data-shot="1_schedule" src="assets/shots/uk/1_schedule.jpg" width="600" height="1304" loading="lazy" draggable="false" data-alt-shot="1" alt="Екран Schedule Lesson «Розклад»: Тиждень, наступний урок і&nbsp;відмітки"></div><h3 data-i18n="g.1.t">Розклад</h3><p data-i18n="g.1.d">Тиждень, наступний урок і&nbsp;відмітки</p></li>
     <li class="car-item" role="group" aria-roledescription="slide" data-of="2"><div class="device"><img data-shot="2_kids" src="assets/shots/uk/2_kids.jpg" width="600" height="1304" loading="lazy" draggable="false" data-alt-shot="2" alt="Екран Schedule Lesson «Учні»: Усі учні та їхні предмети"></div><h3 data-i18n="g.2.t">Учні</h3><p data-i18n="g.2.d">Усі учні та їхні предмети</p></li>
     <li class="car-item" role="group" aria-roledescription="slide" data-of="3"><div class="device"><img data-shot="3_kid" src="assets/shots/uk/3_kid.jpg" width="600" height="1304" loading="lazy" draggable="false" data-alt-shot="3" alt="Екран Schedule Lesson «Картка учня»: Абонемент, нотатки, журнал"></div><h3 data-i18n="g.3.t">Картка учня</h3><p data-i18n="g.3.d">Абонемент, нотатки, журнал</p></li>
     <li class="car-item" role="group" aria-roledescription="slide" data-of="4"><div class="device"><img data-shot="4_journal" src="assets/shots/uk/4_journal.jpg" width="600" height="1304" loading="lazy" draggable="false" data-alt-shot="4" alt="Екран Schedule Lesson «Журнал»: Записи про кожен урок"></div><h3 data-i18n="g.4.t">Журнал</h3><p data-i18n="g.4.d">Записи про кожен урок</p></li>
     <li class="car-item" role="group" aria-roledescription="slide" data-of="5"><div class="device"><img data-shot="5_stats" src="assets/shots/uk/5_stats.jpg" width="600" height="1304" loading="lazy" draggable="false" data-alt-shot="5" alt="Екран Schedule Lesson «Статистика»: Дохід, відвідуваність, прогноз"></div><h3 data-i18n="g.5.t">Статистика</h3><p data-i18n="g.5.d">Дохід, відвідуваність, прогноз</p></li>
     <li class="car-item" role="group" aria-roledescription="slide" data-of="6"><div class="device"><img data-shot="6_report" src="assets/shots/uk/6_report.jpg" width="600" height="1304" loading="lazy" draggable="false" data-alt-shot="6" alt="Екран Schedule Lesson «Звіт для батьків»: Відвідуваність, теми, оплата"></div><h3 data-i18n="g.6.t">Звіт для батьків</h3><p data-i18n="g.6.d">Відвідуваність, теми, оплата</p></li>
-    <li class="car-item" role="group" aria-roledescription="slide" data-of="7"><div class="device"><img data-shot="7_reminder" src="assets/shots/uk/7_reminder.jpg" width="600" height="1304" loading="lazy" draggable="false" data-alt-shot="7" alt="Екран Schedule Lesson «Нагадування про оплату»: Борг за місяць і готовий текст"></div><h3 data-i18n="g.7.t">Нагадування про оплату</h3><p data-i18n="g.7.d">Борг за місяць і&nbsp;готовий текст</p></li>
+    <li class="car-item" role="group" aria-roledescription="slide" data-of="7"><div class="device"><img data-shot="7_reminder" src="assets/shots/uk/7_reminder.jpg" width="600" height="1304" loading="lazy" draggable="false" data-alt-shot="7" alt="Екран Schedule Lesson «Нагадування про оплату»: Борг за місяць і&nbsp;готовий текст"></div><h3 data-i18n="g.7.t">Нагадування про оплату</h3><p data-i18n="g.7.d">Борг за місяць і&nbsp;готовий текст</p></li>
   </ul>
   <div class="car-prog" aria-hidden="true"><i></i></div>
   </div>
@@ -274,7 +306,7 @@
       </article>
 
       <article class="tile t-lock" data-play="lock">
-        <div class="tcopy"><h3 data-i18n="lock.t">Урок на екрані блокування</h3><p data-i18n="lock.d">Живий таймер у&nbsp;Dynamic Island і&nbsp;відмітка «проведено» одним дотиком.</p></div>
+        <div class="tcopy"><h3 data-i18n="lock.t">Урок на екрані блокування</h3><p data-i18n="lock.d">Живий таймер у&nbsp;Dynamic&nbsp;Island і&nbsp;відмітка «проведено» одним дотиком.</p></div>
         <div class="lockui" aria-hidden="true">
           <div class="lk-time">09:41</div>
           <div class="lk-date" data-i18n="lock.date">неділя, 20 вересня</div>
@@ -295,7 +327,7 @@
             <svg viewBox="0 0 120 120"><defs><linearGradient id="gPink" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF6B6B"/><stop offset="1" stop-color="#FF70BF"/></linearGradient></defs><circle cx="60" cy="60" r="50" class="trk"/><circle cx="60" cy="60" r="50" class="val" pathLength="100"/></svg>
             <span class="ring-num"><span class="rn"><b data-count="81">81</b>%</span><small data-i18n="stats.att">відвідуваність</small></span>
           </div>
-          <div class="income"><small data-i18n="stats.inc">Дохід за вересень</small><b data-money="17300">17&nbsp;300&nbsp;₴</b></div>
+          <div class="income"><small data-i18n="stats.inc">Дохід за вересень</small><b data-money="stats.incv">17&nbsp;300&nbsp;₴</b></div>
         </div>
       </article>
 
@@ -429,7 +461,7 @@
           <li data-i18n="pro.f4">Звіти для батьків: відвідуваність, що проходили, оплата і&nbsp;ваш коментар</li>
           <li data-i18n="pro.f5">Аналітика відвідуваності: пропуски, втрачений дохід, надійність</li>
           <li data-i18n="pro.f6">Віджет «Мій день» на Початковому екрані</li>
-          <li data-i18n="pro.f7">Урок на екрані блокування: живий таймер у&nbsp;Dynamic Island</li>
+          <li data-i18n="pro.f7">Урок на екрані блокування: живий таймер у&nbsp;Dynamic&nbsp;Island</li>
           <li data-i18n="pro.f8">Siri і&nbsp;Швидкі команди</li>
           <li data-i18n="pro.f9">Apple Watch: наступний урок і&nbsp;відмітка із запʼястя</li>
         </ul>
@@ -439,7 +471,7 @@
     </div>
     <div class="price-notes" data-reveal>
       <p data-i18n="price.note1">Ціни App Store показує у&nbsp;вашій місцевій валюті.</p>
-      <p data-i18n="price.note2">Скасувати підписку можна будь-коли: Параметри iPhone&nbsp;→ Apple ID&nbsp;→ Підписки.</p>
+      <p data-i18n="price.note2">Скасувати підписку можна будь-коли: Параметри iPhone&nbsp;→ ваше імʼя&nbsp;→ Підписки.</p>
     </div>
   </div>
 </section>
@@ -455,9 +487,9 @@
       <details class="qa"><summary><h3 data-i18n="faq.1.q">Де завантажити Schedule Lesson?</h3><i aria-hidden="true"></i></summary><div class="qa-a"><p class="st-soon" data-i18n-html="faq.1.a">Скоро в&nbsp;App Store&nbsp;— для iPhone з&nbsp;iOS 17 або новішою. Щойно застосунок зʼявиться, кнопки на цій сторінці поведуть просто туди.</p><p class="st-live" data-i18n-html="faq.1.a.live">В&nbsp;App Store на iPhone з&nbsp;iOS 17 або новішою&nbsp;— шукайте за назвою «Schedule Lesson». Доступність залежить від країни вашого App Store.</p></div></details>
       <details class="qa"><summary><h3 data-i18n="faq.2.q">Чи буде версія для Android?</h3><i aria-hidden="true"></i></summary><div class="qa-a"><p data-i18n-html="faq.2.a">Поки що&nbsp;— лише iPhone.</p></div></details>
       <details class="qa"><summary><h3 data-i18n="faq.3.q">Де зберігаються мої дані?</h3><i aria-hidden="true"></i></summary><div class="qa-a"><p data-i18n-html="faq.3.a">У&nbsp;вашому власному хмарному акаунті&nbsp;— із синхронізацією. Новий iPhone чи перевстановлення: увійдіть, і&nbsp;все на місці. Ваші дані бачите тільки ви. Вхід&nbsp;— через email, Apple або Google.</p></div></details>
-      <details class="qa"><summary><h3 data-i18n="faq.4.q">Якими мовами працює застосунок?</h3><i aria-hidden="true"></i></summary><div class="qa-a"><p data-i18n-html="faq.4.a">Українською, англійською та російською.</p></div></details>
+      <details class="qa"><summary><h3 data-i18n="faq.4.q">Якими мовами працює застосунок?</h3><i aria-hidden="true"></i></summary><div class="qa-a"><p data-i18n-html="faq.4.a">Українською, англійською, російською, польською, німецькою, французькою, іспанською та італійською.</p></div></details>
       <details class="qa"><summary><h3 data-i18n="faq.5.q">У&nbsp;мене 2–3 учні. Доведеться платити?</h3><i aria-hidden="true"></i></summary><div class="qa-a"><p data-i18n-html="faq.5.a">Ні. Безкоштовна версія&nbsp;— до 3 учнів, 1 шаблон абонемента, розклад із відміткою одним дотиком і&nbsp;журнал уроків, без обмеження в&nbsp;часі.</p></div></details>
-      <details class="qa"><summary><h3 data-i18n="faq.6.q">Як скасувати Pro?</h3><i aria-hidden="true"></i></summary><div class="qa-a"><p data-i18n-html="faq.6.a">Будь-коли: Параметри iPhone&nbsp;→ Apple ID&nbsp;→ Підписки. Pro коштує $6.99 на місяць або $24.99 на рік (на річному плані&nbsp;— 7 днів безкоштовно); App Store показує ціну у&nbsp;вашій валюті.</p></div></details>
+      <details class="qa"><summary><h3 data-i18n="faq.6.q">Як скасувати Pro?</h3><i aria-hidden="true"></i></summary><div class="qa-a"><p data-i18n-html="faq.6.a">Будь-коли: Параметри iPhone&nbsp;→ ваше імʼя&nbsp;→ Підписки. Pro коштує $6.99 на місяць або $24.99 на рік (на річному плані&nbsp;— 7 днів безкоштовно); App Store показує ціну у&nbsp;вашій валюті.</p></div></details>
       <details class="qa"><summary><h3 data-i18n="faq.7.q">Який потрібен iPhone?</h3><i aria-hidden="true"></i></summary><div class="qa-a"><p data-i18n-html="faq.7.a">Будь-який iPhone з&nbsp;iOS 17 або новішою.</p></div></details>
       <details class="qa"><summary><h3 data-i18n="faq.8.q">Як з&nbsp;вами звʼязатися?</h3><i aria-hidden="true"></i></summary><div class="qa-a"><p data-i18n-html="faq.8.a">Пишіть на <a href="mailto:supportschedulelesson@gmail.com">supportschedulelesson@gmail.com</a>&nbsp;— відповімо.</p></div></details>
     </div>
@@ -478,7 +510,7 @@
     </div>
     <p class="store-note st-live" data-i18n="store.note">Для iPhone · iOS 17+</p>
     <ul class="facts">
-      <li data-i18n="fact.1">Українська, англійська, російська</li>
+      <li data-i18n="fact.1">Українська · Русский · English · Polski · Deutsch · Français · Español · Italiano</li>
       <li data-i18n="fact.2">Дані&nbsp;— у&nbsp;вашому хмарному акаунті</li>
       <li data-i18n="fact.3">Вхід через email, Apple або Google</li>
     </ul>

@@ -120,6 +120,9 @@
     });
     $$('img[data-shot]').forEach(img => {
       const src = `assets/shots/${lang}/${img.dataset.shot}.jpg`;
+      // phone shots inside the 3D rigs (.cam) must never be lazy: WebKit doesn't lazy-load inside
+      // preserve-3d/translateZ, so a lazy cut-out layer would stay black
+      if (img.closest('.cam') && img.loading === 'lazy') img.loading = 'eager';
       if (img.getAttribute('src') !== src) img.setAttribute('src', src);
     });
     $$('[data-alt]').forEach(img => { img.alt = typo(t(img.dataset.alt)); });

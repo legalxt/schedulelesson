@@ -170,7 +170,7 @@
           <p class="store-soon st-soon"><i aria-hidden="true"></i><span data-i18n="store.soon">Bientôt sur l’App Store</span></p>
           <a class="store-badge st-live" href="https://apps.apple.com/app/id6817674096" target="_self" data-store-href><img src="assets/badges/app-store-fr-fr.svg" data-i18n-attr="src:store.badge,alt:store.badge.alt" alt="Télécharger dans l’App Store" width="158" height="54" loading="lazy"></a>
         </div>
-        <p class="fine" data-i18n-html="hero.fine">Pour iPhone · iOS 17+ · <a href="https://legalxt.github.io/schedulelesson-legal/privacy.html#lang-en">Confidentialité</a></p>
+        <p class="fine" data-i18n-html="hero.fine">Pour iPhone · iOS 17+ · <a href="https://legal.schedulelesson.app/privacy.html#lang-en">Confidentialité</a></p>
       </div>
     </div>
 
@@ -223,18 +223,20 @@
       <p class="c-sub" data-i18n="layers.sub">Tout ce qu’il faut savoir avant un cours, sur un seul écran.</p>
     </div>
 
+    <!-- layer shots load eagerly (same file as the hero shot, no extra bytes): WebKit never fires lazy loading for
+         images inside the 3D rig (preserve-3d + translateZ), the cut-outs would stay black (.ly background) -->
     <div class="cam layers-cam" aria-hidden="true">
       <div class="tilt">
         <div class="rig">
           <div class="bezel"></div>
           <div class="screen">
-            <div class="ly base"><img class="shot" data-shot="1_schedule" src="assets/shots/fr/1_schedule.jpg" width="600" height="1304" alt="" loading="lazy"><i class="dim"></i></div>
-            <div class="ly ly-tab" style="--x:22;--y:1138;--w:556;--h:108;--r:54;--z:30"><img class="shot" data-shot="1_schedule" src="assets/shots/fr/1_schedule.jpg" alt="" loading="lazy"></div>
-            <div class="ly ly-list" style="--x:28;--y:566;--w:544;--h:520;--r:28;--z:70"><img class="shot" data-shot="1_schedule" src="assets/shots/fr/1_schedule.jpg" alt="" loading="lazy"><i class="anc" data-a="3"></i></div>
-            <div class="ly ly-ring" style="--x:472;--y:578;--w:92;--h:92;--r:46;--z:190"><img class="shot" data-shot="1_schedule" src="assets/shots/fr/1_schedule.jpg" alt="" loading="lazy"><i class="anc anc-r" data-a="2"></i></div>
-            <div class="ly ly-week" style="--x:24;--y:392;--w:552;--h:164;--r:24;--z:140"><img class="shot" data-shot="1_schedule" src="assets/shots/fr/1_schedule.jpg" alt="" loading="lazy"><i class="anc" data-a="1"></i></div>
-            <div class="ly ly-next" style="--x:28;--y:204;--w:544;--h:178;--r:30;--z:220"><img class="shot" data-shot="1_schedule" src="assets/shots/fr/1_schedule.jpg" alt="" loading="lazy"><i class="anc" data-a="0"></i></div>
-            <div class="ly ly-head" style="--x:0;--y:0;--w:600;--h:196;--r:0;--z:260"><img class="shot" data-shot="1_schedule" src="assets/shots/fr/1_schedule.jpg" alt="" loading="lazy"></div>
+            <div class="ly base"><img class="shot" data-shot="1_schedule" src="assets/shots/fr/1_schedule.jpg" width="600" height="1304" alt=""><i class="dim"></i></div>
+            <div class="ly ly-tab" style="--x:22;--y:1138;--w:556;--h:108;--r:54;--z:30"><img class="shot" data-shot="1_schedule" src="assets/shots/fr/1_schedule.jpg" alt=""></div>
+            <div class="ly ly-list" style="--x:28;--y:566;--w:544;--h:520;--r:28;--z:70"><img class="shot" data-shot="1_schedule" src="assets/shots/fr/1_schedule.jpg" alt=""><i class="anc" data-a="3"></i></div>
+            <div class="ly ly-ring" style="--x:472;--y:578;--w:92;--h:92;--r:46;--z:190"><img class="shot" data-shot="1_schedule" src="assets/shots/fr/1_schedule.jpg" alt=""><i class="anc anc-r" data-a="2"></i></div>
+            <div class="ly ly-week" style="--x:24;--y:392;--w:552;--h:164;--r:24;--z:140"><img class="shot" data-shot="1_schedule" src="assets/shots/fr/1_schedule.jpg" alt=""><i class="anc" data-a="1"></i></div>
+            <div class="ly ly-next" style="--x:28;--y:204;--w:544;--h:178;--r:30;--z:220"><img class="shot" data-shot="1_schedule" src="assets/shots/fr/1_schedule.jpg" alt=""><i class="anc" data-a="0"></i></div>
+            <div class="ly ly-head" style="--x:0;--y:0;--w:600;--h:196;--r:0;--z:260"><img class="shot" data-shot="1_schedule" src="assets/shots/fr/1_schedule.jpg" alt=""></div>
           </div>
         </div>
       </div>
@@ -526,9 +528,9 @@
   <div class="wrap foot-in">
     <p class="foot-brand"><img src="assets/logo-64.png" alt="" width="22" height="22" loading="lazy"><span>© 2026 Schedule Lesson</span><span class="foot-tag" data-i18n="foot.tag">L’app des professeurs particuliers</span></p>
     <nav class="foot-links" data-i18n-attr="aria-label:foot.aria" aria-label="Mentions légales et assistance">
-      <a href="https://legalxt.github.io/schedulelesson-legal/privacy.html#lang-en" data-i18n="foot.privacy" data-i18n-attr="href:link.privacy">Confidentialité</a>
-      <a href="https://legalxt.github.io/schedulelesson-legal/terms.html#lang-en" data-i18n="foot.terms" data-i18n-attr="href:link.terms">Conditions</a>
-      <a href="https://legalxt.github.io/schedulelesson-legal/support.html#lang-en" data-i18n="foot.support" data-i18n-attr="href:link.support">Assistance</a>
+      <a href="https://legal.schedulelesson.app/privacy.html#lang-en" data-i18n="foot.privacy" data-i18n-attr="href:link.privacy">Confidentialité</a>
+      <a href="https://legal.schedulelesson.app/terms.html#lang-en" data-i18n="foot.terms" data-i18n-attr="href:link.terms">Conditions</a>
+      <a href="https://legal.schedulelesson.app/support.html#lang-en" data-i18n="foot.support" data-i18n-attr="href:link.support">Assistance</a>
       <a href="mailto:supportschedulelesson@gmail.com">supportschedulelesson@gmail.com</a>
     </nav>
   </div>

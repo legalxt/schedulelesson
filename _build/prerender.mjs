@@ -8,7 +8,7 @@
 //   node _build/prerender.mjs                                   # relative URLs (domain not decided yet)
 //   SITE_ORIGIN=https://example.com node _build/prerender.mjs   # absolute canonical/hreflang/og:url/og:image + sitemap.xml
 // RELEASE DAY (once the app is confirmed live on the App Store), re-run with STORE_LIVE=1:
-//   SITE_ORIGIN=https://legalxt.github.io/schedulelesson STORE_LIVE=1 node _build/prerender.mjs
+//   SITE_ORIGIN=https://schedulelesson.app STORE_LIVE=1 node _build/prerender.mjs
 // That makes LIVE the static default (<html class="sl-live" data-store="released">, nav/menu CTA → store) for no-JS
 // visitors and crawlers, stops the runtime iTunes lookup (main.js) and adds downloadUrl/installUrl to the JSON-LD.
 // Without the flag the page is NOT LIVE by default and the JSON-LD has no download URL (the store page 404s before release).

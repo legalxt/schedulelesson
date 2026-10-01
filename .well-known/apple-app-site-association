@@ -1,0 +1,13 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["3M62DT7U35.org.yasupreal.schedulelesson"],
+        "components": [
+          { "/": "/get", "comment": "Invite link: /get?code=XXXXXX" },
+          { "/": "/get.html", "comment": "Same page with the extension" }
+        ]
+      }
+    ]
+  }
+}

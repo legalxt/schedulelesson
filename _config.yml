@@ -1,0 +1,7 @@
+# GitHub Pages (Jekyll): по умолчанию папки с точкой не публикуются.
+# .well-known нужна для Universal Links (apple-app-site-association)
+include:
+  - .well-known
+exclude:
+  - _build
+  - README.md

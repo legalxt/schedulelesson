@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Schedule Lesson</title>
+<meta name="description" content="Планувальник для репетиторів на iPhone: учні, розклад, оплати й нагадування.">
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://schedulelesson.app/get">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Schedule Lesson">
+<meta property="og:title" content="Schedule Lesson">
+<meta property="og:description" content="Планувальник для репетиторів на iPhone: учні, розклад, оплати й нагадування.">
+<meta property="og:locale" content="uk_UA">
+<meta property="og:image" content="https://schedulelesson.app/assets/og-uk.jpg?v=2">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://schedulelesson.app/assets/og-uk.jpg?v=2">
+<script>
+  // Ссылка на апку в App Store. Используется только после того, как
+  // itunes lookup подтвердит, что апка уже опубликована (resultCount > 0):
+  // тогда появляется кнопка, а страница без ?code= редиректит в стор.
+  // Для QA: ?live=1 — считать опубликованной, ?live=0 — нет.
+  // В ДЕНЬ РЕЛИЗА (апка уже точно в сторе): RELEASED = true — lookup не делается, кнопка/редирект
+  // показываются всегда, и заблокированный/медленный itunes.apple.com уже не спрячет стор.
+  const APPSTORE_URL = "https://apps.apple.com/app/id6817674096";
+  const APPSTORE_ID = "6817674096";
+  const RELEASED = false;
+</script>
+<style>
+  body {
+    margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(160deg, #17102e 0%, #10142c 45%, #0b1c2a 100%);
+    font-family: -apple-system, "SF Pro Display", system-ui, sans-serif; color: #fff;
+    padding: 24px; box-sizing: border-box; text-align: center;
+  }
+  .card {
+    max-width: 380px; padding: 34px 26px; border-radius: 24px;
+    background: rgba(255,255,255,0.055); border: 1px solid rgba(158,115,250,0.4);
+  }
+  .logo { font-size: 50px; margin-bottom: 8px; }
+  h1 { font-size: 24px; margin: 0 0 8px; }
+  p { color: rgba(255,255,255,0.6); font-size: 15px; line-height: 1.45; margin: 0 0 16px; }
+  .code-box {
+    display: none; margin: 0 0 6px; padding: 14px; border-radius: 14px; cursor: pointer;
+    border: 1.5px dashed rgba(158,115,250,0.8); background: rgba(255,255,255,0.06);
+    font-size: 26px; font-weight: 800; letter-spacing: 6px; color: #C5B1FC;
+  }
+  .code-hint { display: none; color: rgba(255,255,255,0.45); font-size: 12px; margin-bottom: 16px; }
+  .btn {
+    display: inline-block; padding: 13px 26px; border-radius: 14px; font-size: 15px; font-weight: 700;
+    color: #fff; text-decoration: none; border: none; cursor: pointer;
+    background: linear-gradient(135deg, #9E73FA, #40C7EB);
+    box-shadow: 0 8px 24px rgba(158,115,250,0.4);
+  }
+  .chip {
+    display: inline-block; padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 700;
+    color: #B9A6F7; background: rgba(158,115,250,0.16); border: 1px solid rgba(158,115,250,0.4);
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">📅</div>
+    <h1>Schedule Lesson</h1>
+    <p id="t-desc">Планувальник для репетиторів: учні, розклад, оплати й нагадування.</p>
+    <p id="bonus-line" style="display:none"><span id="t-bonus1">Тобі подарували</span> <b style="color:#7BE3A8" id="t-bonus2">+50 тайм-коїнів</b> 🎁 <span id="t-bonus3">Твій інвайт-код:</span></p>
+    <div class="code-box" id="code-box" title="Скопіювати">······</div>
+    <div class="code-hint" id="code-hint">тап — скопіювати · введи його в апці: Налаштування → Гаманець</div>
+    <a class="btn" id="download-btn" style="display:none" href="#">Завантажити в App Store</a>
+    <div class="chip" id="soon-chip">Скоро в App Store</div>
+  </div>
+<script>
+  // Язык: ?lang=<код>, иначе язык браузера (8 языков приложения), всё остальное — uk (как в index.html)
+  const T = {
+    uk: { desc: "Планувальник для репетиторів: учні, розклад, оплати й нагадування.", b1: "Тобі подарували", b2: "+50 тайм-коїнів", b3: "Твій інвайт-код:",
+          copy: "Скопіювати", hint: "тап — скопіювати · введи його в апці: Налаштування → Гаманець",
+          copied: "Скопійовано ✓ — встав його в апці: Налаштування → Гаманець", btn: "Завантажити в App Store", soon: "Скоро в App Store" },
+    ru: { desc: "Планировщик для репетиторов: ученики, расписание, оплаты и напоминания.", b1: "Тебе подарили", b2: "+50 тайм-коинов", b3: "Твой инвайт-код:",
+          copy: "Скопировать", hint: "тап — скопировать · введи его в апке: Настройки → Кошелёк",
+          copied: "Скопировано ✓ — вставь его в апке: Настройки → Кошелёк", btn: "Скачать в App Store", soon: "Скоро в App Store" },
+    en: { desc: "A planner for private tutors: students, schedule, payments and reminders.", b1: "You’ve got", b2: "+50 time coins", b3: "Your invite code:",
+          copy: "Copy", hint: "tap to copy · enter it in the app: Settings → Wallet",
+          copied: "Copied ✓ — paste it in the app: Settings → Wallet", btn: "Download on the App Store", soon: "Coming soon to the App Store" },
+    pl: { desc: "Planer dla korepetytorów: uczniowie, plan lekcji, płatności i przypomnienia.", b1: "Masz w prezencie", b2: "+50 monet czasu", b3: "Twój kod zaproszenia:",
+          copy: "Kopiuj", hint: "stuknij, aby skopiować · wpisz go w aplikacji: Ustawienia → Portfel",
+          copied: "Skopiowano ✓ — wklej go w aplikacji: Ustawienia → Portfel", btn: "Pobierz z App Store", soon: "Wkrótce w App Store" },
+    de: { desc: "Planer für Nachhilfelehrer: Schüler, Stundenplan, Zahlungen und Erinnerungen.", b1: "Du bekommst", b2: "+50 Zeit-Coins", b3: "Dein Einladungscode:",
+          copy: "Kopieren", hint: "tippen zum Kopieren · gib ihn in der App ein: Einstellungen → Wallet",
+          copied: "Kopiert ✓ – füge ihn in der App ein: Einstellungen → Wallet", btn: "Laden im App Store", soon: "Bald im App Store" },
+    fr: { desc: "Le planning des professeurs particuliers : élèves, emploi du temps, paiements et rappels.", b1: "Cadeau :", b2: "+50 jetons temps", b3: "Votre code d’invitation :",
+          copy: "Copier", hint: "touchez pour copier · saisissez-le dans l’app : Réglages → Portefeuille",
+          copied: "Copié ✓ – collez-le dans l’app : Réglages → Portefeuille", btn: "Télécharger dans l’App Store", soon: "Bientôt sur l’App Store" },
+    es: { desc: "Agenda para profesores particulares: alumnos, horario, pagos y recordatorios.", b1: "Te regalan", b2: "+50 monedas de tiempo", b3: "Tu código de invitación:",
+          copy: "Copiar", hint: "toca para copiar · introdúcelo en la app: Ajustes → Monedero",
+          copied: "Copiado ✓ – pégalo en la app: Ajustes → Monedero", btn: "Descargar en el App Store", soon: "Próximamente en el App Store" },
+    it: { desc: "Agenda per insegnanti privati: studenti, orario, pagamenti e promemoria.", b1: "Hai ricevuto", b2: "+50 monete tempo", b3: "Il tuo codice invito:",
+          copy: "Copia", hint: "tocca per copiare · inseriscilo nell’app: Impostazioni → Portafoglio",
+          copied: "Copiato ✓ – incollalo nell’app: Impostazioni → Portafoglio", btn: "Scarica su App Store", soon: "Presto su App Store" },
+  };
+  let lang = "";
+  try { lang = (new URLSearchParams(location.search).get("lang") || "").slice(0, 2).toLowerCase(); } catch (e) {}
+  if (!T.hasOwnProperty(lang)) {
+    lang = (navigator.language || "uk").slice(0, 2).toLowerCase();
+    if (!T.hasOwnProperty(lang)) lang = "uk";
+  }
+  const t = T[lang];
+  document.documentElement.lang = lang;
+  [["t-desc", "desc"], ["t-bonus1", "b1"], ["t-bonus2", "b2"], ["t-bonus3", "b3"], ["code-hint", "hint"], ["download-btn", "btn"], ["soon-chip", "soon"]]
+    .forEach(([id, k]) => { document.getElementById(id).textContent = t[k]; });
+  document.getElementById("code-box").title = t.copy;
+
+  const code = (new URLSearchParams(location.search).get("code") || "")
+    .toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
+
+  if (code) {
+    document.getElementById("bonus-line").style.display = "block";
+    const box = document.getElementById("code-box");
+    const hint = document.getElementById("code-hint");
+    box.textContent = code;
+    box.style.display = "block";
+    hint.style.display = "block";
+    box.addEventListener("click", () => {
+      navigator.clipboard?.writeText(code).then(() => {
+        hint.textContent = t.copied;
+      });
+    });
+  }
+
+  const chip = document.getElementById("soon-chip");
+
+  function showStore() {
+    if (!code) {
+      // Без кода страница — чистый редирект в стор
+      location.replace(APPSTORE_URL);
+    }
+    const btn = document.getElementById("download-btn");
+    btn.href = APPSTORE_URL;
+    btn.style.display = "inline-block";
+    chip.style.display = "none";
+  }
+
+  function showSoon() {
+    chip.style.visibility = "visible";
+  }
+
+  const liveParam = new URLSearchParams(location.search).get("live");
+  if (!APPSTORE_URL || liveParam === "0") {
+    showSoon();
+  } else if (liveParam === "1" || RELEASED) {
+    showStore();
+  } else {
+    // Пока идёт проверка — не показываем «Скоро», чтобы не мигало перед кнопкой
+    chip.style.visibility = "hidden";
+    const ctrl = typeof AbortController === "function" ? new AbortController() : null;
+    const timer = setTimeout(() => { if (ctrl) ctrl.abort(); showSoon(); }, 4000);
+    fetch("https://itunes.apple.com/lookup?id=" + APPSTORE_ID + "&country=us", ctrl ? { signal: ctrl.signal } : {})
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        clearTimeout(timer);
+        if (data && data.resultCount > 0) { showStore(); } else { showSoon(); }
+      })
+      .catch(() => { clearTimeout(timer); showSoon(); });
+  }
+</script>
+</body>
+</html>
